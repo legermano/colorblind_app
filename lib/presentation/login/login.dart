@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //stores:---------------------------------------------------------------------
   final ThemeStore _themeStore = getIt<ThemeStore>();
   final FormStore _formStore = getIt<FormStore>();
-  final UserStore _userStore = getIt<UserStore>();
+  final LoginStore _loginStore = getIt<LoginStore>();
 
   //focus node:-----------------------------------------------------------------
   late FocusNode _passwordFocusNode;
@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
               : Center(child: _buildRightSide()),
           Observer(
             builder: (context) {
-              return _userStore.success
+              return _loginStore.success
                   ? navigate(context)
                   : _showErrorMessage(_formStore.errorStore.errorMessage);
             },
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Observer(
             builder: (context) {
               return Visibility(
-                visible: _userStore.isLoading,
+                visible: _loginStore.isLoading,
                 child: CustomProgressIndicatorWidget(),
               );
             },
@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
       onPressed: () async {
         if (_formStore.canLogin) {
           DeviceUtils.hideKeyboard(context);
-          _userStore.login(_userEmailController.text, _passwordController.text);
+          _loginStore.login(_userEmailController.text, _passwordController.text);
         } else {
           _showErrorMessage('Please fill in all fields');
         }

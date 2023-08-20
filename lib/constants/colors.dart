@@ -15,4 +15,8 @@ class AppColors {
     800: const Color(0xFFDB7424),
     900: const Color(0xFFD56217)
   };
+
+  static const blue = const Color(0xFF467BD4);
+  static const white = const Color(0xFFF9F9F8);
+  static const black = const Color(0xFF525252);
 }

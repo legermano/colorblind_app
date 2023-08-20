@@ -9,5 +9,10 @@ abstract class UserRepository {
 
   Future<void> saveIsLoggedIn(bool value);
 
+  Future<void> saveShowOnboarding(bool value);
+
   Future<bool> get isLoggedIn;
+
+  Future<bool> get showOnboarding;
+  
 }

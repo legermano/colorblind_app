@@ -61,6 +61,8 @@ dependencies:
   # W
   # X
   xxtea: ^2.1.0
+  smooth_page_indicator: ^1.1.0
+  flutter_svg: ^2.0.7
   # Y
   # Z
 
@@ -99,6 +101,7 @@ flutter:
   - assets/images/
   - assets/icons/
   - assets/lang/
+  - assets/svg/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

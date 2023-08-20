@@ -25,4 +25,11 @@ class UserRepositoryImpl extends UserRepository {
 
   @override
   Future<bool> get isLoggedIn => _sharedPrefsHelper.isLoggedIn;
+  
+  @override
+  Future<void> saveShowOnboarding(bool value) => 
+    _sharedPrefsHelper.saveShowOnboarding(value);
+  
+  @override  
+  Future<bool> get showOnboarding => _sharedPrefsHelper.showOnboarding;
 }

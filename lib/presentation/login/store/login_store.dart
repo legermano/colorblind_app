@@ -9,11 +9,11 @@ import '../../../domain/usecase/user/login_usecase.dart';
 
 part 'login_store.g.dart';
 
-class UserStore = _UserStore with _$UserStore;
+class LoginStore = _LoginStore with _$LoginStore;
 
-abstract class _UserStore with Store {
+abstract class _LoginStore with Store {
   // constructor:---------------------------------------------------------------
-  _UserStore(
+  _LoginStore(
     this._isLoggedInUseCase,
     this._saveLoginStatusUseCase,
     this._loginUseCase,

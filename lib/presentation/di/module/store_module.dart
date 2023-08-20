@@ -24,8 +24,8 @@ mixin StoreModule {
     );
 
     // stores:------------------------------------------------------------------
-    getIt.registerSingleton<UserStore>(
-      UserStore(
+    getIt.registerSingleton<LoginStore>(
+      LoginStore(
         getIt<IsLoggedInUseCase>(),
         getIt<SaveLoginStatusUseCase>(),
         getIt<LoginUseCase>(),
