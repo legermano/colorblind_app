@@ -1,4 +1,6 @@
 import 'package:boilerplate/constants/colors.dart';
+import 'package:boilerplate/di/service_locator.dart';
+import 'package:boilerplate/presentation/onboarding/store/onboarding_store.dart';
 import 'package:boilerplate/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,6 +14,8 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+  final OnboardingStore _onboardingStore = getIt<OnboardingStore>();
+
   PageController _pageController = PageController();
   bool _isLastPage = false;
 
@@ -38,7 +42,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   subtitle:
                       'Encontre informações para compreender sobre os diferentes tipos e graus de daltonismo'),
               buildPage(
-                  svgPath: 'assets/svg/onboarding-page1.svg',
+                  svgPath: 'assets/svg/onboarding-page2.svg',
                   title: 'Descubra se você é daltônico',
                   subtitle:
                       'Realize o teste de Ishihara para descobrir em poucos minutos se você tem algum grau de daltonismo'),
@@ -81,7 +85,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         'Começar',
                         style: TextStyle(color: Colors.white),
                       ),
-                      onPressed: () => Navigator.pushNamed(context,Routes.home),
+                      onPressed: () async {
+                        await _onboardingStore.complete();
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          Routes.login,
+                          (Route<dynamic> route) => false,
+                        );
+                      },
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(0),
                         padding: EdgeInsets.symmetric(

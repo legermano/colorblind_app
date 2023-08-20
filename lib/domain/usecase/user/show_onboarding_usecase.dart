@@ -9,7 +9,7 @@ class ShowOnboardingUseCase implements UseCase<bool, void> {
   ShowOnboardingUseCase(this._userRepository);
 
   @override
-  FutureOr<bool> call({required void params}) async {
+  Future<bool> call({required void params}) async {
     return await _userRepository.showOnboarding;
   }
 

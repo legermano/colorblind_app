@@ -5,6 +5,8 @@ import 'package:boilerplate/presentation/home/store/language/language_store.dart
 import 'package:boilerplate/presentation/home/store/theme/theme_store.dart';
 import 'package:boilerplate/presentation/login/login.dart';
 import 'package:boilerplate/presentation/login/store/login_store.dart';
+import 'package:boilerplate/presentation/onboarding/onboarding.dart';
+import 'package:boilerplate/presentation/onboarding/store/onboarding_store.dart';
 import 'package:boilerplate/utils/locale/app_localization.dart';
 import 'package:boilerplate/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,7 @@ class MyApp extends StatelessWidget {
   final ThemeStore _themeStore = getIt<ThemeStore>();
   final LanguageStore _languageStore = getIt<LanguageStore>();
   final LoginStore _loginStore = getIt<LoginStore>();
+  final OnboardingStore _onboardingStore = getIt<OnboardingStore>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,6 @@ class MyApp extends StatelessWidget {
               ? AppThemeData.darkThemeData
               : AppThemeData.lightThemeData,
           routes: Routes.routes,
-          initialRoute: '/onboarding',
           locale: Locale(_languageStore.locale),
           supportedLocales: _languageStore.supportedLanguages
               .map((language) => Locale(language.locale, language.code))
@@ -47,8 +49,11 @@ class MyApp extends StatelessWidget {
             // Built-in localization of basic text for Cupertino widgets
             GlobalCupertinoLocalizations.delegate,
           ],
-          // home: _userStore.isLoggedIn ? HomeScreen() : LoginScreen(),
-          home: _loginStore.isLoggedIn ? HomeScreen() : LoginScreen(),
+          home: _onboardingStore.showOnboarding
+              ? OnboardingScreen()
+              : _loginStore.isLoggedIn
+                  ? HomeScreen()
+                  : LoginScreen(),
         );
       },
     );

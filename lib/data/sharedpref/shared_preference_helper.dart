@@ -53,7 +53,7 @@ class SharedPreferenceHelper {
 
   // Onboarding:---------------------------------------------------
   Future<bool> get showOnboarding async {
-    return _sharedPreference.getBool(Preferences.show_onboarding) ?? false;
+    return _sharedPreference.getBool(Preferences.show_onboarding) ?? true;
   }
 
   Future<bool> saveShowOnboarding(bool value) {
