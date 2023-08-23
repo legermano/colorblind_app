@@ -1,4 +1,4 @@
-import 'package:boilerplate/presentation/home/home.dart';
+import 'package:boilerplate/presentation/home_new/home.dart';
 import 'package:boilerplate/presentation/login/login.dart';
 import 'package:boilerplate/presentation/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';

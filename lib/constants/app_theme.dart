@@ -18,8 +18,8 @@
 /// In order to use this newly created setting or even the colours in it, you would just
 /// `import` this file in your project, anywhere you needed it.
 /// `import 'path/to/setting.dart';`
+import 'package:boilerplate/constants/font_family.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppThemeData {
   static const _lightFillColor = Colors.black;
@@ -35,6 +35,7 @@ class AppThemeData {
   static ThemeData themeData(ColorScheme colorScheme, Color focusColor) {
     return ThemeData(
       colorScheme: colorScheme,
+      fontFamily: FontFamily.acuminPro,
       textTheme: _textTheme,
       // Matches manifest.json colors and background color.
       primaryColor: const Color(0xFF030303),
@@ -54,7 +55,7 @@ class AppThemeData {
           _lightFillColor.withOpacity(0.80),
           _darkFillColor,
         ),
-        contentTextStyle: _textTheme.subtitle1!.apply(color: _darkFillColor),
+        contentTextStyle: _textTheme.titleMedium!.apply(color: _darkFillColor),
       ),
     );
   }
@@ -98,15 +99,15 @@ class AppThemeData {
   static const _bold = FontWeight.w700;
 
   static final TextTheme _textTheme = TextTheme(
-    headline4: GoogleFonts.montserrat(fontWeight: _bold, fontSize: 20.0),
-    caption: GoogleFonts.oswald(fontWeight: _semiBold, fontSize: 16.0),
-    headline5: GoogleFonts.oswald(fontWeight: _medium, fontSize: 16.0),
-    subtitle1: GoogleFonts.montserrat(fontWeight: _medium, fontSize: 16.0),
-    overline: GoogleFonts.montserrat(fontWeight: _medium, fontSize: 12.0),
-    bodyText1: GoogleFonts.montserrat(fontWeight: _regular, fontSize: 14.0),
-    subtitle2: GoogleFonts.montserrat(fontWeight: _medium, fontSize: 14.0),
-    bodyText2: GoogleFonts.montserrat(fontWeight: _regular, fontSize: 16.0),
-    headline6: GoogleFonts.montserrat(fontWeight: _bold, fontSize: 16.0),
-    button: GoogleFonts.montserrat(fontWeight: _semiBold, fontSize: 14.0),
+    headlineMedium: TextStyle(fontWeight: _bold, fontSize: 20.0),
+    bodySmall: TextStyle(fontWeight: _semiBold, fontSize: 16.0),
+    headlineSmall: TextStyle(fontWeight: _medium, fontSize: 16.0),
+    titleMedium: TextStyle(fontWeight: _medium, fontSize: 16.0),
+    labelSmall: TextStyle(fontWeight: _medium, fontSize: 12.0),
+    bodyLarge: TextStyle(fontWeight: _regular, fontSize: 14.0),
+    titleSmall: TextStyle(fontWeight: _medium, fontSize: 14.0),
+    bodyMedium: TextStyle(fontWeight: _regular, fontSize: 16.0),
+    titleLarge: TextStyle(fontWeight: _bold, fontSize: 16.0),
+    labelLarge: TextStyle(fontWeight: _semiBold, fontSize: 14.0),
   );
 }
