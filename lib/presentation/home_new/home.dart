@@ -1,4 +1,5 @@
 import 'package:boilerplate/constants/colors.dart';
+import 'package:boilerplate/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -96,7 +97,10 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: _buildIshiharaCard(),
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pushNamed(Routes.ishihara),
+                    child: _buildIshiharaCard(),
+                  ),
                 ),
                 Expanded(
                   flex: 1,

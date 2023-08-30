@@ -18,6 +18,7 @@
 /// In order to use this newly created setting or even the colours in it, you would just
 /// `import` this file in your project, anywhere you needed it.
 /// `import 'path/to/setting.dart';`
+import 'package:boilerplate/constants/colors.dart';
 import 'package:boilerplate/constants/font_family.dart';
 import 'package:flutter/material.dart';
 
@@ -38,7 +39,7 @@ class AppThemeData {
       fontFamily: FontFamily.acuminPro,
       textTheme: _textTheme,
       // Matches manifest.json colors and background color.
-      primaryColor: const Color(0xFF030303),
+      primaryColor: AppColors.blue,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.background,
         elevation: 0,
@@ -61,12 +62,12 @@ class AppThemeData {
   }
 
   static const ColorScheme lightColorScheme = ColorScheme(
-    primary: Color(0xFFd21e1d),
+    primary: AppColors.black,
     primaryContainer: Color(0xFF9e1718),
     secondary: Color(0xFFEFF3F3),
     secondaryContainer: Color(0xFFFAFBFB),
-    background: Color(0xFFE6EBEB),
-    surface: Color(0xFFFAFBFB),
+    background: AppColors.white,
+    surface: AppColors.card,
     onBackground: Colors.white,
     error: _lightFillColor,
     onError: _lightFillColor,
