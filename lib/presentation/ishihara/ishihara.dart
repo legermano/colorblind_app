@@ -1,8 +1,14 @@
 import 'dart:async';
 
+import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:boilerplate/constants/colors.dart';
+import 'package:boilerplate/core/widgets/progress_indicator_widget.dart';
+import 'package:boilerplate/di/service_locator.dart';
+import 'package:boilerplate/presentation/ishihara/store/ishihara_store.dart';
+import 'package:boilerplate/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 class IshiharaScreen extends StatefulWidget {
   const IshiharaScreen({super.key});
@@ -12,7 +18,14 @@ class IshiharaScreen extends StatefulWidget {
 }
 
 class _IshiharaScreenState extends State<IshiharaScreen> {
-  int seconds = 60;
+  //stores:---------------------------------------------------------------------
+  final IshiharaStore _ishiharaStore = getIt<IshiharaStore>();
+
+  //const:----------------------------------------------------------------------
+  static const int ANSWER_SECONDS = 60;
+
+  //variables: -----------------------------------------------------------------
+  int seconds = ANSWER_SECONDS;
   Timer? timer;
   TextEditingController _textEditingController = TextEditingController();
   bool isChecked = false;
@@ -23,15 +36,36 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
         if (seconds > 0) {
           seconds--;
         } else {
-          seconds = 60;
+          onSetAnswer();
         }
       });
     });
   }
 
+  onSetAnswer() {
+    _ishiharaStore.setAnswer(_textEditingController.value.text, isChecked);
+
+    if (_ishiharaStore.currentPlate >= _ishiharaStore.platesQuantity) {
+      _ishiharaStore.concludeTest();
+      Navigator.of(context).pushReplacementNamed(Routes.results);
+    } else {
+      seconds = ANSWER_SECONDS;
+      _ishiharaStore.nextPlate();
+      _textEditingController.text = '';
+      isChecked = false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    // check to see if already called api
+    if (!_ishiharaStore.platesLoading) {
+      _ishiharaStore.getPlates();
+    }
+    _ishiharaStore.resetTest();
+
     startTimer();
   }
 
@@ -43,11 +77,20 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-      bottomNavigationBar: _buildNextButton(),
-    );
+    return Observer(builder: (context) {
+      return _ishiharaStore.platesLoading
+          ? CustomProgressIndicatorWidget()
+          : Scaffold(
+              appBar: _buildAppBar(),
+              body: Stack(
+                children: <Widget>[
+                  _handleErrorMessage(),
+                  _buildBody(),
+                ],
+              ),
+              bottomNavigationBar: _buildNextButton(),
+            );
+    });
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -70,9 +113,11 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
       centerTitle: true,
       flexibleSpace: Align(
         alignment: Alignment.bottomCenter,
-        child: Text(
-          '7/12',
-          style: TextStyle(fontWeight: FontWeight.w500),
+        child: Observer(
+          builder: (_) => Text(
+            '${_ishiharaStore.currentPlate}/${_ishiharaStore.platesQuantity}',
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
         ),
       ),
     );
@@ -132,7 +177,7 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
 
   Widget _buildPlate() {
     return Image.asset(
-      'assets/images/ishihara/plate_01.png',
+      "assets/images/ishihara/plate-${_ishiharaStore.currentPlate}.png",
       height: MediaQuery.of(context).size.height * 0.35,
       fit: BoxFit.contain,
     );
@@ -198,7 +243,14 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
               return AppColors.black;
             }),
           ),
-          Text('Não vejo nenhum número'),
+          GestureDetector(
+            child: Text('Não vejo nenhum número'),
+            onTap: () {
+              setState(() {
+                isChecked = !isChecked;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -208,9 +260,13 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: OutlinedButton(
-        child: Text(
-          'Próximo',
-          style: TextStyle(color: AppColors.white),
+        child: Observer(
+          builder: (_) => Text(
+            _ishiharaStore.currentPlate >= _ishiharaStore.platesQuantity
+                ? 'Concluir'
+                : 'Próximo',
+            style: TextStyle(color: AppColors.white),
+          ),
         ),
         style: OutlinedButton.styleFrom(
           backgroundColor: AppColors.blue,
@@ -219,8 +275,35 @@ class _IshiharaScreenState extends State<IshiharaScreen> {
           ),
           minimumSize: Size.fromHeight(56),
         ),
-        onPressed: () {},
+        onPressed: () => onSetAnswer(),
       ),
     );
+  }
+
+  Widget _handleErrorMessage() {
+    return Observer(
+      builder: (context) {
+        if (_ishiharaStore.errorStore.errorMessage.isNotEmpty) {
+          return _showErrorMessage(_ishiharaStore.errorStore.errorMessage);
+        }
+
+        return SizedBox.shrink();
+      },
+    );
+  }
+
+  // General Methods:-----------------------------------------------------------
+  _showErrorMessage(String message) {
+    Future.delayed(Duration(milliseconds: 0), () {
+      if (message.isNotEmpty) {
+        FlushbarHelper.createError(
+          message: message,
+          title: 'Erro',
+          duration: Duration(seconds: 3),
+        )..show(context);
+      }
+    });
+
+    return SizedBox.shrink();
   }
 }

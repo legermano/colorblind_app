@@ -1,0 +1,177 @@
+[
+  {
+    "order": 1,
+    "normal": 12,
+    "redGreenDeficiency": 12,
+    "protanopia": 12,
+    "deuteranopia": 12
+  },
+  {
+    "order": 2,
+    "normal": 8,
+    "redGreenDeficiency": 3,
+    "protanopia": 3,
+    "deuteranopia": 3
+  },
+  {
+    "order": 3,
+    "normal": 6,
+    "redGreenDeficiency": 5,
+    "protanopia": 5,
+    "deuteranopia": 5
+  },
+  {
+    "order": 4,
+    "normal": 29,
+    "redGreenDeficiency": 70,
+    "protanopia": 70,
+    "deuteranopia": 70
+  },
+  {
+    "order": 5,
+    "normal": 57,
+    "redGreenDeficiency": 35,
+    "protanopia": 35,
+    "deuteranopia": 35
+  },
+  {
+    "order": 6,
+    "normal": 5,
+    "redGreenDeficiency": 2,
+    "protanopia": 2,
+    "deuteranopia": 2
+  },
+  {
+    "order": 7,
+    "normal": 3,
+    "redGreenDeficiency": 5,
+    "protanopia": 5,
+    "deuteranopia": 5
+  },
+  {
+    "order": 8,
+    "normal": 15,
+    "redGreenDeficiency": 17,
+    "protanopia": 17,
+    "deuteranopia": 17
+  },
+  {
+    "order": 9,
+    "normal": 74,
+    "redGreenDeficiency": 21,
+    "protanopia": 21,
+    "deuteranopia": 21
+  },
+  {
+    "order": 10,
+    "normal": 2,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 11,
+    "normal": 6,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 12,
+    "normal": 97,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 13,
+    "normal": 45,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 14,
+    "normal": 5,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 15,
+    "normal": 7,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 16,
+    "normal": 16,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 17,
+    "normal": 73,
+    "redGreenDeficiency": null,
+    "protanopia": null,
+    "deuteranopia": null
+  },
+  {
+    "order": 18,
+    "normal": null,
+    "redGreenDeficiency": 5,
+    "protanopia": 5,
+    "deuteranopia": 5
+  },
+  {
+    "order": 19,
+    "normal": null,
+    "redGreenDeficiency": 2,
+    "protanopia": 2,
+    "deuteranopia": 2
+  },
+  {
+    "order": 20,
+    "normal": null,
+    "redGreenDeficiency": 45,
+    "protanopia": 45,
+    "deuteranopia": 45
+  },
+  {
+    "order": 21,
+    "normal": null,
+    "redGreenDeficiency": 73,
+    "protanopia": 73,
+    "deuteranopia": 73
+  },
+  {
+    "order": 22,
+    "normal": 26,
+    "redGreenDeficiency": 26,
+    "protanopia": 6,
+    "deuteranopia": 2
+  },
+  {
+    "order": 23,
+    "normal": 42,
+    "redGreenDeficiency": 42,
+    "protanopia": 2,
+    "deuteranopia": 4
+  },
+  {
+    "order": 24,
+    "normal": 35,
+    "redGreenDeficiency": 35,
+    "protanopia": 5,
+    "deuteranopia": 3
+  },
+  {
+    "order": 25,
+    "normal": 96,
+    "redGreenDeficiency": 96,
+    "protanopia": 6,
+    "deuteranopia": 9
+  }
+]

@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:boilerplate/core/stores/error/error_store.dart';
 import 'package:boilerplate/core/stores/form/form_store.dart';
+import 'package:boilerplate/core/stores/user/user_store.dart';
+import 'package:boilerplate/domain/repository/ishihara/ishihara_answers_repository.dart';
+import 'package:boilerplate/domain/usecase/ishihara/get_plates_usercase.dart';
+import 'package:boilerplate/presentation/ishihara/store/ishihara_store.dart';
 import 'package:boilerplate/domain/repository/setting/setting_repository.dart';
 import 'package:boilerplate/domain/usecase/post/get_post_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/is_logged_in_usecase.dart';
@@ -58,11 +62,25 @@ mixin StoreModule {
       ),
     );
 
+    getIt.registerSingleton<UserStore>(
+      UserStore(
+        getIt<IshiharaAnswersRepository>(),
+      )
+    );
+
     getIt.registerSingleton<OnboardingStore>(
       OnboardingStore(
         getIt<ShowOnboardingUseCase>(),
         getIt<SaveShowOnboardingUseCase>(),
       ),
+    );
+
+    getIt.registerSingleton<IshiharaStore>(
+      IshiharaStore(
+        getIt<GetPlatesUseCase>(),
+        getIt<ErrorStore>(),
+        getIt<UserStore>(),
+      )
     );
   }
 }

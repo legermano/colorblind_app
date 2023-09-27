@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,5 +59,14 @@ class SharedPreferenceHelper {
 
   Future<bool> saveShowOnboarding(bool value) {
     return _sharedPreference.setBool(Preferences.show_onboarding, value);
+  }
+
+  // Ishihara answer: ----------------------------------------------------------
+  String? get ishiharaAnswers {
+    return _sharedPreference.getString(Preferences.ishihara_answer);
+  }
+
+  Future<void> changeIshiharaAnswers(String answers) {
+    return _sharedPreference.setString(Preferences.ishihara_answer, answers);
   }
 }

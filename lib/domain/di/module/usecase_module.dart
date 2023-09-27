@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:boilerplate/domain/repository/ishihara/ishihara_plates_repository.dart';
 import 'package:boilerplate/domain/repository/post/post_repository.dart';
 import 'package:boilerplate/domain/repository/user/user_repository.dart';
+import 'package:boilerplate/domain/usecase/ishihara/get_plates_usercase.dart';
 import 'package:boilerplate/domain/usecase/post/delete_post_usecase.dart';
 import 'package:boilerplate/domain/usecase/post/find_post_by_id_usecase.dart';
 import 'package:boilerplate/domain/usecase/post/get_post_usecase.dart';
@@ -49,6 +51,11 @@ mixin UseCaseModule {
     );
     getIt.registerSingleton<DeletePostUseCase>(
       DeletePostUseCase(getIt<PostRepository>()),
+    );
+
+    // plates: -----------------------------------------------------------------
+    getIt.registerSingleton<GetPlatesUseCase>(
+      GetPlatesUseCase(getIt<IshiharaPlatesRepository>())
     );
   }
 }

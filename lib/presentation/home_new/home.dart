@@ -156,7 +156,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                   side: BorderSide(color: AppColors.black, width: 2),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pushNamed(Routes.results);
+                },
               ),
             )
           ],

@@ -6,4 +6,5 @@ class Preferences {
   static const String is_dark_mode = "is_dark_mode";
   static const String current_language = "current_language";
   static const String show_onboarding = 'showOnboarding';
+  static const String ishihara_answer = 'ishihara_answer';
 }
