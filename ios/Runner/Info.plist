@@ -47,5 +47,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+  <key>NSCameraUsageDescription</key>
+  <string>Permissão para utilizar a camera para a filtragem das imagens</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Permissão de uso do microfone para utilizar funções do aplicativo por comando de voz</string>
 </dict>
 </plist>

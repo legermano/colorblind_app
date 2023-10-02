@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
           horizontal: 48,
         ),
       ),
-      onPressed: () {},
+      onPressed: () => Navigator.of(context).pushNamed(Routes.camera),
     );
   }
 }

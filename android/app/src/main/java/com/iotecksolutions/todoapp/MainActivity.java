@@ -1,4 +1,4 @@
-package com.iotecksolutions.todoapp;
+package br.com.germano.colorblindapp;
 
 import io.flutter.embedding.android.FlutterActivity;
 
