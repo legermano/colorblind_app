@@ -39,52 +39,46 @@ extern "C" {
         rotateMat(frame, rotation);
         cvtColor(frame, frame, COLOR_BGR2HSV);
 
-        // int cx = frame.size().width / 2;
-        // int cy = frame.size().height / 2;
-
         Vec3b pixel = frame.at<Vec3b>(pointY, pointX);
-        int hue_value = pixel[0];
 
-        const char* color = "Undefined";
+        int hue = pixel[0];
+        int saturation = pixel[1];
+        int value = pixel[2];
 
-        if (hue_value <= 7.5) {
-            color = "Red";
+        const char* color = "";
+
+        if (value > 140 && saturation <= 40) {
+            color = "Branco";
         }
-        else if (hue_value <= 22.5) {
-            color = "Orange";
+        else if ((value <= 140 && value > 40) && (saturation <= 40 || (saturation <= 75 and hue >= 100 && hue <= 135 ))) {
+            color = "Cinza";
         }
-        else if (hue_value <= 37.5) {
-            color = "Yellow";
+        else if (value <= 40) {
+            color = "Preto";
         }
-        else if (hue_value <= 52.5) {
-            color = "Yellow Green";
+        else if (hue <= 7.5 ) {
+            color = "Vermelho";
         }
-        else if (hue_value <= 67.5) {
-            color = "Green";
+        else if (hue <= 22.5) {
+            color = "Laranja";
         }
-        else if (hue_value <= 82.5) {
-            color = "Blue Green";
+        else if (hue <= 34.5) {
+            color = "Amarelo";
         }
-        else if (hue_value <= 97.5) {
-            color = "Cyan";
+        else if (hue <= 102.5) {
+            color = "Verde";
         }
-        else if (hue_value <= 112.5) {
-            color = "Green Blue";
+        else if (hue <= 126.5) {
+            color = "Azul";
         }
-        else if (hue_value <= 127.5) {
-            color = "Blue";
+        else if (hue <= 142.5) {
+            color = "Roxo";
         }
-        else if (hue_value <= 142.5) {
-            color = "Purple Blue";
-        }
-        else if (hue_value <= 157.2) {
-            color = "Magenta";
-        }
-        else if (hue_value <= 172.5) {
-            color = "Purple Red";
+        else if (hue <= 172.2) {
+            color = "Rosa";
         }
         else {
-            color = "Red";
+            color = "Vermelho";
         }
 
         return color;

@@ -98,9 +98,7 @@ class _CameraScreenState extends State<CameraScreen>
 
     try {
       await _cameraController!.initialize();
-      await _cameraController!
-          // .startImageStream((image) => _processCameraImage(image));
-          .startImageStream((image) {
+      await _cameraController!.startImageStream((image) {
         setState(() {
           _currentImage = image;
         });
@@ -198,7 +196,7 @@ class _CameraScreenState extends State<CameraScreen>
             _cameraController!,
             child: Stack(
               children: [
-                if(pX != null && pY != null) _buildCircle(),
+                if (pX != null && pY != null) _buildCircle(),
                 _buildGestureDector(context),
               ],
             ),
@@ -221,8 +219,6 @@ class _CameraScreenState extends State<CameraScreen>
         if (!_colorPickerInProgress) {
           return;
         }
-
-        print("onTapDown (x,y) : ${details.localPosition.dx}, ${details.localPosition.dy}");
 
         setState(() {
           pX = details.localPosition.dx;
