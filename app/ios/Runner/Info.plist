@@ -51,5 +51,9 @@
   <string>Permissão para utilizar a camera para a filtragem das imagens</string>
   <key>NSMicrophoneUsageDescription</key>
   <string>Permissão de uso do microfone para utilizar funções do aplicativo por comando de voz</string>
+  <key>NSPhotoLibraryUsageDescription </key>
+  <string>Permissão para buscar imanges da galeria do usuário para filtragem de cores</string>
+  <key>NSPhotoLibraryAddUsageDescription</key>
+  <string>Permissão de gravar fotos filtradas pelo aplicativo</string>
 </dict>
 </plist>

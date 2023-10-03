@@ -6,6 +6,8 @@ import 'package:boilerplate/utils/opencv/color_detector_async.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -37,6 +39,9 @@ class _CameraScreenState extends State<CameraScreen>
 
   FlashMode _flashMode = FlashMode.off;
   CameraImage? _currentImage;
+
+  //Image preview variables
+  XFile? _selectedImageFile;
 
   // Color picker variables
   String? _selectedColor;
@@ -84,8 +89,10 @@ class _CameraScreenState extends State<CameraScreen>
     if (cameraDescription == null) {
       return;
     }
+
     _cameraFrameRotation =
         Platform.isAndroid ? cameraDescription.sensorOrientation : 0;
+
     _cameraController = CameraController(
       cameraDescription,
       ResolutionPreset.max,
@@ -110,6 +117,59 @@ class _CameraScreenState extends State<CameraScreen>
     if (mounted) {
       setState(() {});
     }
+  }
+
+  double _previewWidth() => previewKey.currentContext!.size!.width;
+
+  double _previewHeight() => previewKey.currentContext!.size!.height;
+
+  // Since the application is only render on portrait mode, we need to shift the width and height on the preview image
+  double _previewScale() =>
+      _previewWidth() / _cameraController!.value.previewSize!.height;
+
+  void setFleshMode({FlashMode? mode}) {
+    if (mode == null) {
+      mode = (_flashMode == FlashMode.torch) ? FlashMode.off : FlashMode.torch;
+    }
+
+    setState(() {
+      _flashMode = mode!;
+    });
+
+    _cameraController!.setFlashMode(_flashMode);
+  }
+
+  void setLensDirection({CameraLensDirection? direction}) {
+    if (direction == null) {
+      direction = (_lensDirection == CameraLensDirection.back)
+          ? CameraLensDirection.front
+          : CameraLensDirection.back;
+    }
+
+    setState(() {
+      _lensDirection = direction!;
+    });
+
+    initCamera();
+  }
+
+  void openImagePreview(XFile file) {
+    setFleshMode(mode: FlashMode.off);
+    toogleColorPicker(progress: false);
+    _cameraController!.pausePreview();
+
+    setState(() {
+      _selectedImageFile = file;
+    });
+  }
+
+  void closeImagePreview() {
+    setState(() {
+      _selectedImageFile = null;
+    });
+
+    toogleColorPicker(progress: false);
+    initCamera();
   }
 
   void _processCameraImage(CameraImage image, int pointX, int pointY) async {
@@ -148,9 +208,9 @@ class _CameraScreenState extends State<CameraScreen>
     });
   }
 
-  void toogleColorPicker() {
+  void toogleColorPicker({bool? progress}) {
     setState(() {
-      _colorPickerInProgress = !_colorPickerInProgress;
+      _colorPickerInProgress = progress ?? !_colorPickerInProgress;
 
       if (!_colorPickerInProgress) {
         _selectedColor = null;
@@ -158,6 +218,16 @@ class _CameraScreenState extends State<CameraScreen>
         pY = null;
       }
     });
+  }
+
+  Future<void> pickImageFromGallery() async {
+    final _image = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (_image == null) {
+      return;
+    }
+
+    openImagePreview(_image);
   }
 
   @override
@@ -179,14 +249,14 @@ class _CameraScreenState extends State<CameraScreen>
 
     return Stack(
       children: [
-        _buildCameraPreview(context),
+        _buildPreview(context),
         _buildTopControllers(),
         _buildBottomControllers(context),
       ],
     );
   }
 
-  Widget _buildCameraPreview(BuildContext context) {
+  Widget _buildPreview(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Stack(
@@ -196,12 +266,27 @@ class _CameraScreenState extends State<CameraScreen>
             _cameraController!,
             child: Stack(
               children: [
+                if (_selectedImageFile != null) _buildImagePreview(),
                 if (pX != null && pY != null) _buildCircle(),
-                _buildGestureDector(context),
+                if (_selectedImageFile == null) _buildCameraGestureDector(context),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    return Container(
+      color: backgroundColor,
+      child: Center(
+        child: GestureDetector(
+          child: Image.file(File(_selectedImageFile!.path)),
+          onTapDown: (details) {
+            print("_buildImagePreviewGestureDetector");
+          },
+        ),
       ),
     );
   }
@@ -213,7 +298,7 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
-  Widget _buildGestureDector(BuildContext context) {
+  Widget _buildCameraGestureDector(BuildContext context) {
     return GestureDetector(
       onTapDown: (details) async {
         if (!_colorPickerInProgress) {
@@ -225,9 +310,7 @@ class _CameraScreenState extends State<CameraScreen>
           pY = details.localPosition.dy;
         });
 
-        // Since the application is only render on portrait mode, we need to shift the width and height on the preview image
-        double scale = previewKey.currentContext!.size!.width /
-            _cameraController!.value.previewSize!.height;
+        double scale = _previewScale();
 
         int px = details.localPosition.dx ~/ scale;
         int py = details.localPosition.dy ~/ scale;
@@ -245,23 +328,7 @@ class _CameraScreenState extends State<CameraScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            splashColor: Colors.transparent,
-            icon: Icon(
-              _flashMode == FlashMode.torch ? Icons.flash_off : Icons.flash_on,
-              color: AppColors.white,
-              size: 26,
-            ),
-            onPressed: () {
-              setState(() {
-                _flashMode = (_flashMode == FlashMode.torch)
-                    ? FlashMode.off
-                    : FlashMode.torch;
-              });
-
-              _cameraController!.setFlashMode(_flashMode);
-            },
-          ),
+          _buildFlashButton(),
           CircleAvatar(
             backgroundColor: _colorPickerInProgress
                 ? backgroundColor.withOpacity(0.9)
@@ -292,6 +359,20 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
+  Widget _buildFlashButton() {
+    return _selectedImageFile == null
+        ? IconButton(
+            splashColor: Colors.transparent,
+            icon: Icon(
+              _flashMode == FlashMode.torch ? Icons.flash_off : Icons.flash_on,
+              color: AppColors.white,
+              size: 26,
+            ),
+            onPressed: () => setFleshMode(),
+          )
+        : SizedBox(width: 26, height: 26);
+  }
+
   Widget _buildBottomControllers(BuildContext context) {
     return Positioned(
       left: 0,
@@ -304,47 +385,66 @@ class _CameraScreenState extends State<CameraScreen>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 21,
-                backgroundColor: backgroundColor.withOpacity(0.8),
-                child: IconButton(
-                  icon: Icon(Icons.flip_camera_android, color: AppColors.white),
-                  onPressed: () {},
-                ),
-              ),
-              GestureDetector(
-                child: Container(
-                  width: 74,
-                  height: 74,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white, width: 5),
-                  ),
-                  padding: EdgeInsets.all(2.5),
-                  child: CircleAvatar(backgroundColor: AppColors.white),
-                ),
-              ),
-              CircleAvatar(
-                radius: 21,
-                backgroundColor: backgroundColor.withOpacity(0.8),
-                child: IconButton(
-                  icon: Icon(Icons.flip_camera_android, color: AppColors.white),
-                  onPressed: () {
-                    setState(() {
-                      _lensDirection =
-                          (_lensDirection == CameraLensDirection.back)
-                              ? CameraLensDirection.front
-                              : CameraLensDirection.back;
-                      initCamera();
-                    });
-                  },
-                ),
-              )
+              _buildSearchGalleryButton(),
+              _buildTakePictureButton(),
+              _buildFlipCameraButton(),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildSearchGalleryButton() {
+    return CircleAvatar(
+      radius: 21,
+      backgroundColor: backgroundColor.withOpacity(0.8),
+      child: IconButton(
+        icon: Icon(Icons.image_search_rounded, color: AppColors.white),
+        onPressed: () async {
+          await pickImageFromGallery();
+        },
+      ),
+    );
+  }
+
+  Widget _buildTakePictureButton() {
+    return GestureDetector(
+      child: Container(
+          width: 74,
+          height: 74,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.white, width: 5),
+          ),
+          padding: EdgeInsets.all(2.5),
+          child: _selectedImageFile == null
+              ? CircleAvatar(backgroundColor: AppColors.white)
+              : Icon(Icons.close, color: AppColors.white, size: 44)),
+      onTap: () {
+        if (_selectedImageFile == null) {
+          _cameraController!.takePicture().then((file) {
+            ImageGallerySaver.saveFile(file.path);
+            openImagePreview(file);
+          });
+        } else {
+          closeImagePreview();
+        }
+      },
+    );
+  }
+
+  Widget _buildFlipCameraButton() {
+    return _selectedImageFile == null
+        ? CircleAvatar(
+            radius: 21,
+            backgroundColor: backgroundColor.withOpacity(0.8),
+            child: IconButton(
+              icon: Icon(Icons.flip_camera_android, color: AppColors.white),
+              onPressed: () => setLensDirection(),
+            ),
+          )
+        : SizedBox(width: 42, height: 42);
   }
 
   Widget _buildSelectedColorCard() {
