@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:boilerplate/utils/opencv/color_detector.dart' as color_detector;
 
@@ -40,6 +41,29 @@ class ColorDetectorAsync {
       reqId: reqId,
       method: 'getColor',
       params: {'image': image, 'rotation': rotation, 'pointX': pointX, 'pointY': pointY},
+    );
+
+    _toDetectorThread.send(msg);
+    return res.future;
+  }
+
+  Future<Uint8List?> correct(CameraImage image, int rotation, double protanopiaDegree, double deutranopiaDegree) {
+    if (!arThreadReady) {
+      return Future.value(null);
+    }
+
+    var reqId = ++_reqId;
+    var res = Completer<Uint8List?>();
+    _cbs[reqId] = res;
+    var msg = color_detector.Request(
+      reqId: reqId,
+      method: 'correct',
+      params: {
+        'image': image,
+        'rotation': rotation,
+        'protanopiaDegree': protanopiaDegree,
+        'deutranopiaDegree': deutranopiaDegree,
+      },
     );
 
     _toDetectorThread.send(msg);

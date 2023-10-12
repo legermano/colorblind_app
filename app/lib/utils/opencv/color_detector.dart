@@ -58,6 +58,13 @@ void _handleMessage(data) {
         var pointY = data.params['pointY'];
         res = _detector.getColor(image, rotation, pointX, pointY);
         break;
+      case 'correct':
+        var image = data.params['image'] as CameraImage;
+        var rotation = data.params['rotation'];
+        var protanopiaDegree = data.params['protanopiaDegree'];
+        var deutranopiaDegree = data.params['deutranopiaDegree'];
+        res = _detector.correct(image, rotation, protanopiaDegree, deutranopiaDegree);
+        break;
       case 'destroy':
         _detector.destroy();
         break;
@@ -108,6 +115,41 @@ class _ColorDetector {
       rotation,
       pointX,
       pointY,
+      yBuffer,
+      uBuffer,
+      vBuffer,
+    );
+  }
+
+  Uint8List? correct(CameraImage image, int rotation, double protanopiaDegree, double deutranopiaDegree) {
+    // make sure we have a detector
+    if (_nativeOpencv == null) {
+      return null;
+    }
+
+    // On Android the image format is YUV and we get a buffer per channel,
+    // in iOS the format is BGRA and we get a single buffer for all channels.
+    // So the yBuffer variable on Android will be just the Y channel but on iOS it will be
+    // the entire image
+    var planes = image.planes;
+    var yBuffer = planes[0].bytes;
+
+    Uint8List? uBuffer;
+    Uint8List? vBuffer;
+
+    if (Platform.isAndroid) {
+      uBuffer = planes[1].bytes;
+      vBuffer = planes[2].bytes;
+    }
+
+    print("$protanopiaDegree, $deutranopiaDegree");
+
+    return _nativeOpencv!.correct(
+      image.width,
+      image.height,
+      rotation,
+      protanopiaDegree,
+      deutranopiaDegree,
       yBuffer,
       uBuffer,
       vBuffer,

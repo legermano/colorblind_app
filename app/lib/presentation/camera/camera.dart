@@ -9,6 +9,15 @@ import 'package:flutter/services.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 
+enum CameraOptions {
+  normal,
+  protanopia_correction,
+  deutranopia_correction,
+  protanopia_simulation,
+  deutranopia_simulation,
+  tritanopia_simulation,
+}
+
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -17,13 +26,14 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   // Key
   GlobalKey previewKey = GlobalKey();
 
   // Controllers
   CameraLensDirection _lensDirection = CameraLensDirection.back;
   CameraController? _cameraController;
+  late TabController _tabController;
 
   // Color
   Color backgroundColor = Color(0xFF1C1C1C);
@@ -34,9 +44,9 @@ class _CameraScreenState extends State<CameraScreen>
   // State variables
   int _cameraFrameRotation = 0;
   int _lastRun = 0;
-  double _cameraFrameToScreenScale = 0;
   bool _detectionInProgress = false;
 
+  CameraOptions _cameraOption = CameraOptions.normal;
   FlashMode _flashMode = FlashMode.off;
   CameraImage? _currentImage;
 
@@ -49,11 +59,15 @@ class _CameraScreenState extends State<CameraScreen>
   double? pX;
   double? pY;
 
+  Image? uiImage;
+  Uint8List? bytes;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _colorDetector = ColorDetectorAsync();
+    _tabController = TabController(vsync: this, length: 6, initialIndex: 0);
     initCamera();
   }
 
@@ -95,7 +109,7 @@ class _CameraScreenState extends State<CameraScreen>
 
     _cameraController = CameraController(
       cameraDescription,
-      ResolutionPreset.max,
+      ResolutionPreset.high,
       enableAudio: false,
       imageFormatGroup: Platform.isAndroid
           ? ImageFormatGroup.yuv420
@@ -109,6 +123,11 @@ class _CameraScreenState extends State<CameraScreen>
         setState(() {
           _currentImage = image;
         });
+
+        if(_cameraOption == CameraOptions.protanopia_correction || _cameraOption == CameraOptions.deutranopia_correction) {
+          _processCameraImage(image);
+        }
+
       });
     } catch (e) {
       log("Error initializing camera, error: ${e.toString()}");
@@ -172,39 +191,49 @@ class _CameraScreenState extends State<CameraScreen>
     initCamera();
   }
 
-  void _processCameraImage(CameraImage image, int pointX, int pointY) async {
-    if (_detectionInProgress ||
-        !mounted ||
-        DateTime.now().millisecondsSinceEpoch - _lastRun < 30) {
-      return;
-    }
-
-    // calc the scale factor to convert from camera frame coords to screen coords.
-    // NOTE!!!! We assume camera frame takes the entire screen width, if that's not the case
-    // (like if camera is landscape or the camera frame is limited to some area) then you will
-    // have to find the correct scale factor somehow else
-    if (_cameraFrameToScreenScale == 0) {
-      var w = (_cameraFrameRotation == 0 || _cameraFrameRotation == 180)
-          ? image.width
-          : image.height;
-      _cameraFrameToScreenScale = MediaQuery.of(context).size.width / w;
-    }
-
-    // Call the detector
-    _detectionInProgress = true;
+  void _getColor(CameraImage image, int pointX, int pointY) async {
     String? color = await _colorDetector.getColor(
         image, _cameraFrameRotation, pointX, pointY);
-    _detectionInProgress = false;
-    _lastRun = DateTime.now().millisecondsSinceEpoch;
 
-    // Make sure we are still mounted, the background thread can return a response after we navigate away from this
-    // screen but before bg thread is killed
     if (!mounted || color == null || color.isEmpty) {
       return;
     }
 
     setState(() {
       _selectedColor = color;
+    });
+  }
+
+  void _processCameraImage(CameraImage image) async {
+    if (_detectionInProgress ||
+        !mounted ||
+        DateTime.now().millisecondsSinceEpoch - _lastRun < 30) {
+      return;
+    }
+
+    // Call the detector
+    _detectionInProgress = true;
+    Uint8List? correctedImage =
+        await _colorDetector.correct(
+          image,
+          _cameraFrameRotation,
+          (_cameraOption == CameraOptions.protanopia_correction) ? 1.0 : 0.0,
+          (_cameraOption == CameraOptions.deutranopia_correction) ? 1.0 : 0.0,
+        );
+
+    print(correctedImage);
+
+    _detectionInProgress = false;
+    _lastRun = DateTime.now().millisecondsSinceEpoch;
+
+    // Make sure we are still mounted, the background thread can return a response after we navigate away from this
+    // screen but before bg thread is killed
+    if (!mounted || correctedImage == null || correctedImage.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      bytes = correctedImage;
     });
   }
 
@@ -232,10 +261,15 @@ class _CameraScreenState extends State<CameraScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: _buildBody(context),
+    return DefaultTabController(
+      length: 6,
+      child: SafeArea(
+        top: true,
+        child: Scaffold(
+          backgroundColor: backgroundColor,
+          body: _buildBody(context),
+          bottomNavigationBar: _buildBottomNavigationBar(),
+        ),
       ),
     );
   }
@@ -266,9 +300,15 @@ class _CameraScreenState extends State<CameraScreen>
             _cameraController!,
             child: Stack(
               children: [
+                if (_cameraOption != CameraOptions.normal && bytes != null)
+                  Image(
+                    image: MemoryImage(bytes!),
+                    gaplessPlayback: true,
+                  ),
                 if (_selectedImageFile != null) _buildImagePreview(),
                 if (pX != null && pY != null) _buildCircle(),
-                if (_selectedImageFile == null) _buildCameraGestureDector(context),
+                if (_selectedImageFile == null)
+                  _buildCameraGestureDector(context),
               ],
             ),
           ),
@@ -315,7 +355,7 @@ class _CameraScreenState extends State<CameraScreen>
         int px = details.localPosition.dx ~/ scale;
         int py = details.localPosition.dy ~/ scale;
 
-        _processCameraImage(_currentImage!, px, py);
+        _getColor(_currentImage!, px, py);
       },
     );
   }
@@ -468,6 +508,61 @@ class _CameraScreenState extends State<CameraScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return TabBar(
+      isScrollable: true,
+      labelColor: AppColors.white,
+      unselectedLabelColor: AppColors.white.withOpacity(0.7),
+      indicatorSize: TabBarIndicatorSize.tab,
+      indicatorPadding: EdgeInsets.all(5),
+      indicatorColor: AppColors.white,
+      padding: EdgeInsets.only(left: 8, right: 8, bottom: 6),
+      onTap: (index) {
+        setState(() {
+          _cameraOption = CameraOptions.values[index];
+        });
+      },
+      controller: _tabController,
+      tabs: CameraOptions.values
+          .map(
+            (option) => Tab(
+              child: Text(
+                _getOptionName(option).toUpperCase(),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  String _getOptionName(CameraOptions option) {
+    String name = 'Visão Normal';
+
+    switch (option) {
+      case CameraOptions.protanopia_correction:
+        name = 'Protanopia';
+        break;
+      case CameraOptions.protanopia_simulation:
+        name = 'Protanopia (simulação)';
+        break;
+      case CameraOptions.deutranopia_correction:
+        name = 'Deuteranopia';
+        break;
+      case CameraOptions.deutranopia_simulation:
+        name = 'Deuteranopia (simulação)';
+        break;
+      case CameraOptions.tritanopia_simulation:
+        name = 'Tritanopia (simulação)';
+        break;
+      default:
+    }
+
+    return name;
   }
 }
 
