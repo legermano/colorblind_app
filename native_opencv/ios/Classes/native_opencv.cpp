@@ -9,13 +9,33 @@ using namespace cv;
 void rotateMat(Mat &matImage, int rotation)
 {
     if (rotation == 90) {
-        transpose(matImage, matImage);
-        flip(matImage, matImage, 1);
+        rotate(matImage, matImage, ROTATE_90_CLOCKWISE);
     } else if (rotation == 270) {
-        transpose(matImage, matImage);
+        rotate(matImage, matImage, ROTATE_90_COUNTERCLOCKWISE);
+        flip(matImage, matImage, 1);
     } else if (rotation == 180) {
-        flip(matImage, matImage, -1);
+        rotate(matImage, matImage, ROTATE_180);
     }
+}
+
+Mat correctionMatrix(double protanopiaDegree, double deutranopiaDegree) {
+	Mat matrix(3, 3, CV_64F);
+
+	matrix.at<double>(0, 0) = 1.0 - deutranopiaDegree / 2;
+	matrix.at<double>(0, 1) = protanopiaDegree / 2;
+	matrix.at<double>(0, 2) = protanopiaDegree / 4;
+
+	matrix.at<double>(1, 0) = deutranopiaDegree / 2;
+	matrix.at<double>(1, 1) = 1.0 - protanopiaDegree / 2;
+	matrix.at<double>(2, 1) = deutranopiaDegree / 4;
+
+	matrix.at<double>(2, 0) = 0;
+	matrix.at<double>(2, 1) = 0;
+	matrix.at<double>(2, 2) = 1.0 - (protanopiaDegree + deutranopiaDegree) / 4;
+
+	matrix.convertTo(matrix, CV_32FC3);
+
+	return matrix.t(); // Transpose the matrix to match Python's behavior
 }
 
 extern "C" {
@@ -82,5 +102,35 @@ extern "C" {
         }
 
         return color;
+    }
+
+    __attribute__((visibility("default"))) __attribute__((used))
+    const void correct(int width, int height, int rotation, float protanopiaDegree, float deutranopiaDegree, uint8_t* bytes, bool isYUV, uint8_t* encodedBytes, int32_t* outCount) {
+        Mat frame;
+
+        if(isYUV) {
+            Mat myyuv(height + height / 2, width, CV_8UC1, bytes);
+            cvtColor(myyuv, frame, COLOR_YUV2BGRA_NV21);
+        } else {
+            frame = Mat(height, width, CV_8UC4, bytes);
+        }
+
+        rotateMat(frame, rotation);
+        cvtColor(frame, frame, COLOR_BGR2RGB);
+        frame.convertTo(frame, CV_32FC3 , 1.f/255);
+        transform(frame, frame, correctionMatrix(protanopiaDegree, deutranopiaDegree));
+        frame.convertTo(frame, CV_8U, 255);
+        
+        vector<uint8_t> jpegData;
+
+        vector<int> params;
+        params.push_back(IMWRITE_JPEG_QUALITY);
+        params.push_back(90);
+
+        imencode(".jpg", frame, jpegData, params);
+
+        memcpy(encodedBytes, jpegData.data(), jpegData.size());
+
+        *outCount = jpegData.size();
     }
 }

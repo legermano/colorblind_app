@@ -20,6 +20,18 @@ typedef _CGetColor = Pointer<Utf8> Function(
   Bool isYUV,
 );
 
+typedef _CCorrect = Void Function(
+  Int32 width,
+  Int32 height,
+  Int32 rotation,
+  Float protanopiaDegree,
+  Float deutranopiaDegree,
+  Pointer<Uint8> bytes,
+  Bool isYUV,
+  Pointer<Uint8> encondedData,
+  Pointer<Int32> outCount
+);
+
 // Dart functions signatures
 typedef _DartVersion = Pointer<Utf8> Function();
 typedef _DartGetColor = Pointer<Utf8> Function(
@@ -32,10 +44,23 @@ typedef _DartGetColor = Pointer<Utf8> Function(
   bool isYUV,
 );
 
+typedef _DartCorrect = void Function(
+  int width,
+  int height,
+  int rotation,
+  double protanopiaDegree,
+  double deutranopiaDegree,
+  Pointer<Uint8> bytes,
+  bool isYUV,
+  Pointer<Uint8> encondedData,
+  Pointer<Int32> outCount
+);
+
 // Create dart functions that invoke the C function
 final _version = nativeLib.lookupFunction<_CVersion, _DartVersion>('version');
 final _getColor =
     nativeLib.lookupFunction<_CGetColor, _DartGetColor>('getColor');
+final _correct = nativeLib.lookupFunction<_CCorrect, _DartCorrect>('correct');
 
 class NativeOpencv {
   Pointer<Uint8>? _imageBuffer;
@@ -95,5 +120,55 @@ class NativeOpencv {
     );
 
     return color.toDartString();
+  }
+
+  Uint8List correct(
+    int width,
+    int height,
+    int rotation,
+    double protanopiaDegree,
+    double deutranopiaDegree,
+    Uint8List yBuffer,
+    Uint8List? uBuffer,
+    Uint8List? vBuffer,
+  ) {
+    var ySize = yBuffer.lengthInBytes;
+    var uSize = uBuffer?.lengthInBytes ?? 0;
+    var vSize = vBuffer?.lengthInBytes ?? 0;
+    var totalSize = ySize + uSize + vSize;
+
+    _imageBuffer ??= malloc.allocate<Uint8>(totalSize);
+
+    // We always have at least 1 plane, on Android it si the yPlane on iOS its the rgba plane
+    Uint8List bytes = _imageBuffer!.asTypedList(totalSize);
+    bytes.setAll(0, yBuffer);
+
+    if (Platform.isAndroid) {
+      // Swap u&v buffer for opencv
+      bytes.setAll(ySize, vBuffer!);
+      bytes.setAll(ySize + vSize, uBuffer!);
+    }
+
+    Pointer<Int32> outCount = malloc.allocate<Int32>(1);
+    Pointer<Uint8> encodedBytes = malloc.allocate<Uint8>(totalSize);
+
+    _correct(
+      width,
+      height,
+      rotation,
+      protanopiaDegree,
+      deutranopiaDegree,
+      _imageBuffer!,
+      Platform.isAndroid ? true : false,
+      encodedBytes,
+      outCount,
+    );
+
+    final count = outCount.value;
+    final data = encodedBytes.asTypedList(count);
+
+    malloc.free(outCount);
+    malloc.free(encodedBytes);
+    return data;
   }
 }
