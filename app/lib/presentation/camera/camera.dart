@@ -124,7 +124,7 @@ class _CameraScreenState extends State<CameraScreen>
           _currentImage = image;
         });
 
-        if(_cameraOption == CameraOptions.protanopia_correction || _cameraOption == CameraOptions.deutranopia_correction) {
+        if(_cameraOption != CameraOptions.normal) {
           _processCameraImage(image);
         }
 
@@ -213,15 +213,41 @@ class _CameraScreenState extends State<CameraScreen>
 
     // Call the detector
     _detectionInProgress = true;
-    Uint8List? correctedImage =
+    Uint8List? correctedImage;
+
+    if([CameraOptions.protanopia_correction, CameraOptions.deutranopia_correction].contains(_cameraOption)) {
+      correctedImage =
         await _colorDetector.correct(
           image,
           _cameraFrameRotation,
           (_cameraOption == CameraOptions.protanopia_correction) ? 1.0 : 0.0,
           (_cameraOption == CameraOptions.deutranopia_correction) ? 1.0 : 0.0,
         );
+    } else {
+      String type = "";
 
-    print(correctedImage);
+      switch (_cameraOption) {
+        case CameraOptions.protanopia_simulation:
+          type = 'protanopia';
+          break;
+        case CameraOptions.deutranopia_simulation:
+          type = 'deutranopia';
+          break;
+        case CameraOptions.tritanopia_simulation:
+          type = 'tritanopia';
+          break;
+        default:
+          type = 'normal';
+      }
+
+      correctedImage =
+        await _colorDetector.simulate(
+          image,
+          _cameraFrameRotation,
+          type,
+          1.0,
+        );
+    }
 
     _detectionInProgress = false;
     _lastRun = DateTime.now().millisecondsSinceEpoch;

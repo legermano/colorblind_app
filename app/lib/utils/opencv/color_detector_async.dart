@@ -70,6 +70,29 @@ class ColorDetectorAsync {
     return res.future;
   }
 
+  Future<Uint8List?> simulate(CameraImage image, int rotation, String type, double degree) {
+    if (!arThreadReady) {
+      return Future.value(null);
+    }
+
+    var reqId = ++_reqId;
+    var res = Completer<Uint8List?>();
+    _cbs[reqId] = res;
+    var msg = color_detector.Request(
+      reqId: reqId,
+      method: 'simulate',
+      params: {
+        'image': image,
+        'rotation': rotation,
+        'type': type,
+        'degree': degree,
+      },
+    );
+
+    _toDetectorThread.send(msg);
+    return res.future;
+  }
+
   void destroy() async {
     if (!arThreadReady) {
       return;
