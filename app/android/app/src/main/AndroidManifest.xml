@@ -16,7 +16,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:icon="@mipmap/ic_launcher"
-        android:label="Boilerplate Project"
+        android:label="Color Clarity"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
