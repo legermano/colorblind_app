@@ -20,6 +20,12 @@ typedef _CGetColor = Pointer<Utf8> Function(
   Bool isYUV,
 );
 
+typedef _CGetColorImage = Pointer<Utf8> Function(
+  Pointer<Utf8> path,
+  Int32 pointX,
+  Int32 pointY,
+);
+
 typedef _CCorrect = Void Function(
   Int32 width,
   Int32 height,
@@ -28,6 +34,14 @@ typedef _CCorrect = Void Function(
   Float deutranopiaDegree,
   Pointer<Uint8> bytes,
   Bool isYUV,
+  Pointer<Uint8> encondedData,
+  Pointer<Int32> outCount
+);
+
+typedef _CCorrectImage = Void Function(
+  Pointer<Utf8> path,
+  Float protanopiaDegree,
+  Float deutranopiaDegree,
   Pointer<Uint8> encondedData,
   Pointer<Int32> outCount
 );
@@ -44,6 +58,14 @@ typedef _CSimulate = Void Function(
   Pointer<Int32> outCount
 );
 
+typedef _CSimulateImage = Void Function(  
+  Pointer<Utf8> path,
+  Pointer<Utf8> type,
+  Float degree,
+  Pointer<Uint8> encondedData,
+  Pointer<Int32> outCount
+);
+
 // Dart functions signatures
 typedef _DartVersion = Pointer<Utf8> Function();
 typedef _DartGetColor = Pointer<Utf8> Function(
@@ -56,6 +78,12 @@ typedef _DartGetColor = Pointer<Utf8> Function(
   bool isYUV,
 );
 
+typedef _DartGetColorImage = Pointer<Utf8> Function(
+  Pointer<Utf8> path,
+  int pointX,
+  int pointY,
+);
+
 typedef _DartCorrect = void Function(
   int width,
   int height,
@@ -64,6 +92,14 @@ typedef _DartCorrect = void Function(
   double deutranopiaDegree,
   Pointer<Uint8> bytes,
   bool isYUV,
+  Pointer<Uint8> encondedData,
+  Pointer<Int32> outCount
+);
+
+typedef _DartCorrectImage = void Function(
+  Pointer<Utf8> path,
+  double protanopiaDegree,
+  double deutranopiaDegree,
   Pointer<Uint8> encondedData,
   Pointer<Int32> outCount
 );
@@ -80,12 +116,24 @@ typedef _DartSimulate = void Function(
   Pointer<Int32> outCount
 );
 
+typedef _DartSimulateImage = void Function(
+  Pointer<Utf8> path,
+  Pointer<Utf8> type,
+  double degree,
+  Pointer<Uint8> encondedData,
+  Pointer<Int32> outCount
+);
+
 // Create dart functions that invoke the C function
 final _version = nativeLib.lookupFunction<_CVersion, _DartVersion>('version');
 final _getColor =
     nativeLib.lookupFunction<_CGetColor, _DartGetColor>('getColor');
+final _getColorImage =
+    nativeLib.lookupFunction<_CGetColorImage, _DartGetColorImage>('getColorImage');
 final _correct = nativeLib.lookupFunction<_CCorrect, _DartCorrect>('correct');
+final _correctImage = nativeLib.lookupFunction<_CCorrectImage, _DartCorrectImage>('correctImage');
 final _simulate = nativeLib.lookupFunction<_CSimulate, _DartSimulate>('simulate');
+final _simulateImage = nativeLib.lookupFunction<_CSimulateImage, _DartSimulateImage>('simulateImage');
 
 class NativeOpencv {
   Pointer<Uint8>? _imageBuffer;
@@ -147,6 +195,20 @@ class NativeOpencv {
     return color.toDartString();
   }
 
+  String getColorImage(
+    String path,
+    int pointX,
+    int pointY,
+  ) {
+    Pointer<Utf8> color = _getColorImage(
+      path.toNativeUtf8(),
+      pointX,
+      pointY,
+    );
+
+    return color.toDartString();
+  }
+
   Uint8List correct(
     int width,
     int height,
@@ -157,10 +219,10 @@ class NativeOpencv {
     Uint8List? uBuffer,
     Uint8List? vBuffer,
   ) {
-    var ySize = yBuffer.lengthInBytes;
-    var uSize = uBuffer?.lengthInBytes ?? 0;
-    var vSize = vBuffer?.lengthInBytes ?? 0;
-    var totalSize = ySize + uSize + vSize;
+    int ySize = yBuffer.lengthInBytes;
+    int uSize = uBuffer?.lengthInBytes ?? 0;
+    int vSize = vBuffer?.lengthInBytes ?? 0;
+    int totalSize = ySize + uSize + vSize;
 
     _imageBuffer ??= malloc.allocate<Uint8>(totalSize);
 
@@ -185,6 +247,32 @@ class NativeOpencv {
       deutranopiaDegree,
       _imageBuffer!,
       Platform.isAndroid ? true : false,
+      encodedBytes,
+      outCount,
+    );
+
+    final count = outCount.value;
+    final data = encodedBytes.asTypedList(count);
+
+    malloc.free(outCount);
+    malloc.free(encodedBytes);
+    return data;
+  }
+
+  Uint8List correctImage(
+    String path,
+    double protanopiaDegree,
+    double deutranopiaDegree,
+  ) {
+    File file = File(path);
+
+    Pointer<Int32> outCount = malloc.allocate<Int32>(1);
+    Pointer<Uint8> encodedBytes = malloc.allocate<Uint8>(file.readAsBytesSync().lengthInBytes);
+
+    _correctImage(
+      path.toNativeUtf8(),
+      protanopiaDegree,
+      deutranopiaDegree,
       encodedBytes,
       outCount,
     );
@@ -235,6 +323,32 @@ class NativeOpencv {
       degree,
       _imageBuffer!,
       Platform.isAndroid ? true : false,
+      encodedBytes,
+      outCount,
+    );
+
+    final count = outCount.value;
+    final data = encodedBytes.asTypedList(count);
+
+    malloc.free(outCount);
+    malloc.free(encodedBytes);
+    return data;
+  }
+
+  Uint8List simulateImage(
+    String path,
+    String type,
+    double degree
+  ) {
+    File file = File(path);
+
+    Pointer<Int32> outCount = malloc.allocate<Int32>(1);
+    Pointer<Uint8> encodedBytes = malloc.allocate<Uint8>(file.readAsBytesSync().lengthInBytes);
+
+    _simulateImage(
+      path.toNativeUtf8(),
+      type.toNativeUtf8(),
+      degree,
       encodedBytes,
       outCount,
     );

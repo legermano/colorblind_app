@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
+import 'package:lecle_flutter_absolute_path/lecle_flutter_absolute_path.dart';
 
 enum CameraOptions {
   normal,
@@ -28,7 +30,8 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   // Key
-  GlobalKey previewKey = GlobalKey();
+  GlobalKey cameraPreviewKey = GlobalKey();
+  GlobalKey imagePreviewKey = GlobalKey();
 
   // Controllers
   CameraLensDirection _lensDirection = CameraLensDirection.back;
@@ -52,6 +55,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   //Image preview variables
   XFile? _selectedImageFile;
+  Uint8List? _selectedImageBytes;
 
   // Color picker variables
   String? _selectedColor;
@@ -124,10 +128,9 @@ class _CameraScreenState extends State<CameraScreen>
           _currentImage = image;
         });
 
-        if(_cameraOption != CameraOptions.normal) {
+        if (_cameraOption != CameraOptions.normal) {
           _processCameraImage(image);
         }
-
       });
     } catch (e) {
       log("Error initializing camera, error: ${e.toString()}");
@@ -138,9 +141,7 @@ class _CameraScreenState extends State<CameraScreen>
     }
   }
 
-  double _previewWidth() => previewKey.currentContext!.size!.width;
-
-  double _previewHeight() => previewKey.currentContext!.size!.height;
+  double _previewWidth() => cameraPreviewKey.currentContext!.size!.width;
 
   // Since the application is only render on portrait mode, we need to shift the width and height on the preview image
   double _previewScale() =>
@@ -172,9 +173,10 @@ class _CameraScreenState extends State<CameraScreen>
     initCamera();
   }
 
-  void openImagePreview(XFile file) {
+  void openImagePreview(XFile file) async {
     setFleshMode(mode: FlashMode.off);
     toogleColorPicker(progress: false);
+    _processFile(file);
     _cameraController!.pausePreview();
 
     setState(() {
@@ -193,7 +195,11 @@ class _CameraScreenState extends State<CameraScreen>
 
   void _getColor(CameraImage image, int pointX, int pointY) async {
     String? color = await _colorDetector.getColor(
-        image, _cameraFrameRotation, pointX, pointY);
+      image,
+      _cameraFrameRotation,
+      pointX,
+      pointY,
+    );
 
     if (!mounted || color == null || color.isEmpty) {
       return;
@@ -201,6 +207,65 @@ class _CameraScreenState extends State<CameraScreen>
 
     setState(() {
       _selectedColor = color;
+    });
+  }
+
+  void _getColorImage(XFile file, int pointX, int pointY) async {
+    String? color = await _colorDetector.getColorImage(
+      file.path,
+      pointX,
+      pointY,
+    );
+
+    if (!mounted || color == null || color.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _selectedColor = color;
+    });
+  }
+
+  void _processFile(XFile file) async {
+    Uint8List? correctedImage;
+
+    if (_cameraOption != CameraOptions.normal) {
+      if ([
+        CameraOptions.protanopia_correction,
+        CameraOptions.deutranopia_correction
+      ].contains(_cameraOption)) {
+        correctedImage = await _colorDetector.correctImage(
+          file.path,
+          (_cameraOption == CameraOptions.protanopia_correction) ? 1.0 : 0.0,
+          (_cameraOption == CameraOptions.deutranopia_correction) ? 1.0 : 0.0,
+        );
+      } else {
+        String type = "";
+
+        switch (_cameraOption) {
+          case CameraOptions.protanopia_simulation:
+            type = 'protanopia';
+            break;
+          case CameraOptions.deutranopia_simulation:
+            type = 'deutranopia';
+            break;
+          case CameraOptions.tritanopia_simulation:
+            type = 'tritanopia';
+            break;
+          default:
+            type = 'normal';
+        }
+
+        correctedImage = await _colorDetector.simulateImage(
+          file.path,
+          type,
+          1.0,
+        );
+      }
+    }
+
+    setState(() {
+      _selectedImageBytes = correctedImage;
     });
   }
 
@@ -215,14 +280,16 @@ class _CameraScreenState extends State<CameraScreen>
     _detectionInProgress = true;
     Uint8List? correctedImage;
 
-    if([CameraOptions.protanopia_correction, CameraOptions.deutranopia_correction].contains(_cameraOption)) {
-      correctedImage =
-        await _colorDetector.correct(
-          image,
-          _cameraFrameRotation,
-          (_cameraOption == CameraOptions.protanopia_correction) ? 1.0 : 0.0,
-          (_cameraOption == CameraOptions.deutranopia_correction) ? 1.0 : 0.0,
-        );
+    if ([
+      CameraOptions.protanopia_correction,
+      CameraOptions.deutranopia_correction
+    ].contains(_cameraOption)) {
+      correctedImage = await _colorDetector.correct(
+        image,
+        _cameraFrameRotation,
+        (_cameraOption == CameraOptions.protanopia_correction) ? 1.0 : 0.0,
+        (_cameraOption == CameraOptions.deutranopia_correction) ? 1.0 : 0.0,
+      );
     } else {
       String type = "";
 
@@ -240,13 +307,12 @@ class _CameraScreenState extends State<CameraScreen>
           type = 'normal';
       }
 
-      correctedImage =
-        await _colorDetector.simulate(
-          image,
-          _cameraFrameRotation,
-          type,
-          1.0,
-        );
+      correctedImage = await _colorDetector.simulate(
+        image,
+        _cameraFrameRotation,
+        type,
+        1.0,
+      );
     }
 
     _detectionInProgress = false;
@@ -289,13 +355,10 @@ class _CameraScreenState extends State<CameraScreen>
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 6,
-      child: SafeArea(
-        top: true,
-        child: Scaffold(
-          backgroundColor: backgroundColor,
-          body: _buildBody(context),
-          bottomNavigationBar: _buildBottomNavigationBar(),
-        ),
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        body: SafeArea(child: _buildBody(context)),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
     );
   }
@@ -322,7 +385,7 @@ class _CameraScreenState extends State<CameraScreen>
       child: Stack(
         children: [
           CameraPreview(
-            key: previewKey,
+            key: cameraPreviewKey,
             _cameraController!,
             child: Stack(
               children: [
@@ -331,7 +394,7 @@ class _CameraScreenState extends State<CameraScreen>
                     image: MemoryImage(bytes!),
                     gaplessPlayback: true,
                   ),
-                if (_selectedImageFile != null) _buildImagePreview(),
+                if (_selectedImageFile != null) _buildImagePreview(context),
                 if (pX != null && pY != null) _buildCircle(),
                 if (_selectedImageFile == null)
                   _buildCameraGestureDector(context),
@@ -343,14 +406,37 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
-  Widget _buildImagePreview() {
+  Widget _buildImagePreview(BuildContext context) {
     return Container(
-      color: backgroundColor,
+      color: Colors.black,
       child: Center(
         child: GestureDetector(
-          child: Image.file(File(_selectedImageFile!.path)),
-          onTapDown: (details) {
-            print("_buildImagePreviewGestureDetector");
+          key: imagePreviewKey,
+          child: _selectedImageBytes == null
+              ? Image.file(File(_selectedImageFile!.path))
+              : Image(image: MemoryImage(_selectedImageBytes!)),
+          onTapDown: (details) async {
+            if (!_colorPickerInProgress || _selectedImageFile == null) {
+              return;
+            }
+
+            img.Image? image = await img.decodeImageFile(_selectedImageFile!.path);
+
+            if(image == null) {
+              return;
+            }
+
+            setState(() {
+              pX = details.globalPosition.dx;
+              pY = details.globalPosition.dy - MediaQuery.of(context).padding.top;
+            });
+
+            double scale = imagePreviewKey.currentContext!.size!.width / image.width;
+
+            int px = details.localPosition.dx ~/ scale;
+            int py = details.localPosition.dy ~/ scale;
+
+            _getColorImage(_selectedImageFile!, px, py);
           },
         ),
       ),
@@ -487,12 +573,33 @@ class _CameraScreenState extends State<CameraScreen>
           child: _selectedImageFile == null
               ? CircleAvatar(backgroundColor: AppColors.white)
               : Icon(Icons.close, color: AppColors.white, size: 44)),
-      onTap: () {
+      onTap: () async {
         if (_selectedImageFile == null) {
-          _cameraController!.takePicture().then((file) {
-            ImageGallerySaver.saveFile(file.path);
-            openImagePreview(file);
-          });
+          if(_cameraOption != CameraOptions.normal && bytes != null) {
+            final result = await ImageGallerySaver.saveImage(bytes!, isReturnImagePathOfIOS: true);
+
+            if(result['isSuccess'] == true && result['filePath'] != null) {
+              String? filePath = await LecleFlutterAbsolutePath.getAbsolutePath(uri: result['filePath']);
+
+              if(filePath != null) {
+                File file = File(filePath);
+                XFile xFile = XFile(file.path);
+
+                setState(() {
+                  _cameraOption = CameraOptions.normal;
+                  _tabController.index = 0;
+                });
+
+                openImagePreview(xFile);
+              }
+            }
+          } else {
+            _cameraController!.takePicture().then((file) {
+              ImageGallerySaver.saveFile(file.path);
+              openImagePreview(file);
+            });
+          }
+
         } else {
           closeImagePreview();
         }
@@ -549,6 +656,10 @@ class _CameraScreenState extends State<CameraScreen>
         setState(() {
           _cameraOption = CameraOptions.values[index];
         });
+
+        if (_selectedImageFile != null) {
+          _processFile(_selectedImageFile!);
+        }
       },
       controller: _tabController,
       tabs: CameraOptions.values

@@ -58,6 +58,12 @@ void _handleMessage(data) {
         var pointY = data.params['pointY'];
         res = _detector.getColor(image, rotation, pointX, pointY);
         break;
+      case 'getColorImage':
+        var path = data.params['path'];
+        var pointX = data.params['pointX'];
+        var pointY = data.params['pointY'];
+        res = _detector.getColorImage(path, pointX, pointY);
+        break;
       case 'correct':
         var image = data.params['image'] as CameraImage;
         var rotation = data.params['rotation'];
@@ -65,12 +71,24 @@ void _handleMessage(data) {
         var deutranopiaDegree = data.params['deutranopiaDegree'];
         res = _detector.correct(image, rotation, protanopiaDegree, deutranopiaDegree);
         break;
+      case 'correctImage':
+        var path = data.params['path'];
+        var protanopiaDegree = data.params['protanopiaDegree'];
+        var deutranopiaDegree = data.params['deutranopiaDegree'];
+        res = _detector.correctImage(path, protanopiaDegree, deutranopiaDegree);
+        break;
       case 'simulate':
         var image = data.params['image'] as CameraImage;
         var rotation = data.params['rotation'];
         var type = data.params['type'];
         var degree = data.params['degree'];
         res = _detector.simulate(image, rotation, type, degree);
+        break;
+      case 'simulateImage':
+        var path = data.params['path'];
+        var type = data.params['type'];
+        var degree = data.params['degree'];
+        res = _detector.simulateImage(path, type, degree);
         break;
       case 'destroy':
         _detector.destroy();
@@ -128,6 +146,19 @@ class _ColorDetector {
     );
   }
 
+  String? getColorImage(String path, int pointX, int pointY) {
+    // make sure we have a detector
+    if (_nativeOpencv == null) {
+      return null;
+    }
+
+    return _nativeOpencv!.getColorImage(
+      path,
+      pointX,
+      pointY,
+    );
+  }
+
   Uint8List? correct(CameraImage image, int rotation, double protanopiaDegree, double deutranopiaDegree) {
     // make sure we have a detector
     if (_nativeOpencv == null) {
@@ -161,6 +192,19 @@ class _ColorDetector {
     );
   }
 
+  Uint8List? correctImage(String path, double protanopiaDegree, double deutranopiaDegree) {
+    // make sure we have a detector
+    if (_nativeOpencv == null) {
+      return null;
+    }
+
+    return _nativeOpencv!.correctImage(
+      path,
+      protanopiaDegree,
+      deutranopiaDegree,
+    );
+  }
+
   Uint8List? simulate(CameraImage image, int rotation, String type, double degree) {
     // make sure we have a detector
     if (_nativeOpencv == null) {
@@ -191,6 +235,19 @@ class _ColorDetector {
       yBuffer,
       uBuffer,
       vBuffer,
+    );
+  }
+
+  Uint8List? simulateImage(String path, String type, double degree) {
+    // make sure we have a detector
+    if (_nativeOpencv == null) {
+      return null;
+    }
+
+    return _nativeOpencv!.simulateImage(
+      path,
+      type,
+      degree
     );
   }
 

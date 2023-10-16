@@ -47,6 +47,24 @@ class ColorDetectorAsync {
     return res.future;
   }
 
+  Future<String?> getColorImage(String path, int pointX, int pointY) {
+    if (!arThreadReady) {
+      return Future.value(null);
+    }
+
+    var reqId = ++_reqId;
+    var res = Completer<String?>();
+    _cbs[reqId] = res;
+    var msg = color_detector.Request(
+      reqId: reqId,
+      method: 'getColorImage',
+      params: {'path': path, 'pointX': pointX, 'pointY': pointY},
+    );
+
+    _toDetectorThread.send(msg);
+    return res.future;
+  }
+
   Future<Uint8List?> correct(CameraImage image, int rotation, double protanopiaDegree, double deutranopiaDegree) {
     if (!arThreadReady) {
       return Future.value(null);
@@ -70,6 +88,28 @@ class ColorDetectorAsync {
     return res.future;
   }
 
+  Future<Uint8List?> correctImage(String path, double protanopiaDegree, double deutranopiaDegree) {
+    if (!arThreadReady) {
+      return Future.value(null);
+    }
+
+    var reqId = ++_reqId;
+    var res = Completer<Uint8List?>();
+    _cbs[reqId] = res;
+    var msg = color_detector.Request(
+      reqId: reqId,
+      method: 'correctImage',
+      params: {
+        'path': path,
+        'protanopiaDegree': protanopiaDegree,
+        'deutranopiaDegree': deutranopiaDegree,
+      },
+    );
+
+    _toDetectorThread.send(msg);
+    return res.future;
+  }
+
   Future<Uint8List?> simulate(CameraImage image, int rotation, String type, double degree) {
     if (!arThreadReady) {
       return Future.value(null);
@@ -84,6 +124,28 @@ class ColorDetectorAsync {
       params: {
         'image': image,
         'rotation': rotation,
+        'type': type,
+        'degree': degree,
+      },
+    );
+
+    _toDetectorThread.send(msg);
+    return res.future;
+  }
+
+  Future<Uint8List?> simulateImage(String path, String type, double degree) {
+    if (!arThreadReady) {
+      return Future.value(null);
+    }
+
+    var reqId = ++_reqId;
+    var res = Completer<Uint8List?>();
+    _cbs[reqId] = res;
+    var msg = color_detector.Request(
+      reqId: reqId,
+      method: 'simulateImage',
+      params: {
+        'path': path,
         'type': type,
         'degree': degree,
       },

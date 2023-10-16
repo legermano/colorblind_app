@@ -205,6 +205,56 @@ extern "C" {
     }
 
     __attribute__((visibility("default"))) __attribute__((used))
+    const char* getColorImage(const char* path, int pointX, int pointY) {
+        Mat frame = imread(path);
+        cvtColor(frame, frame, COLOR_BGR2HSV);
+
+        Vec3b pixel = frame.at<Vec3b>(pointY, pointX);
+
+        int hue = pixel[0];
+        int saturation = pixel[1];
+        int value = pixel[2];
+
+        const char* color = "";
+
+        if (value > 140 && saturation <= 40) {
+            color = "Branco";
+        }
+        else if ((value <= 140 && value > 40) && (saturation <= 40 || (saturation <= 75 and hue >= 100 && hue <= 135 ))) {
+            color = "Cinza";
+        }
+        else if (value <= 40) {
+            color = "Preto";
+        }
+        else if (hue <= 7.5 ) {
+            color = "Vermelho";
+        }
+        else if (hue <= 22.5) {
+            color = "Laranja";
+        }
+        else if (hue <= 34.5) {
+            color = "Amarelo";
+        }
+        else if (hue <= 102.5) {
+            color = "Verde";
+        }
+        else if (hue <= 126.5) {
+            color = "Azul";
+        }
+        else if (hue <= 142.5) {
+            color = "Roxo";
+        }
+        else if (hue <= 172.2) {
+            color = "Rosa";
+        }
+        else {
+            color = "Vermelho";
+        }
+
+        return color;
+    }
+
+    __attribute__((visibility("default"))) __attribute__((used))
     const void correct(int width, int height, int rotation, float protanopiaDegree, float deutranopiaDegree, uint8_t* bytes, bool isYUV, uint8_t* encodedBytes, int32_t* outCount) {
         Mat frame;
 
@@ -216,6 +266,30 @@ extern "C" {
         }
 
         rotateMat(frame, rotation);
+        cvtColor(frame, frame, COLOR_BGR2RGB);
+
+        frame.convertTo(frame, CV_32FC3 , 1.f/255);
+
+        transform(frame, frame, correctionMatrix(protanopiaDegree, deutranopiaDegree));
+
+        frame.convertTo(frame, CV_8U, 255);
+
+        vector<uint8_t> jpegData;
+
+        vector<int> params;
+        params.push_back(IMWRITE_JPEG_QUALITY);
+        params.push_back(90);
+
+        imencode(".jpg", frame, jpegData, params);
+
+        memcpy(encodedBytes, jpegData.data(), jpegData.size());
+
+        *outCount = jpegData.size();
+    }
+
+    __attribute__((visibility("default"))) __attribute__((used))
+    const void correctImage(const char* path, float protanopiaDegree, float deutranopiaDegree, uint8_t* encodedBytes, int32_t* outCount) {
+        Mat frame = imread(path);
         cvtColor(frame, frame, COLOR_BGR2RGB);
 
         frame.convertTo(frame, CV_32FC3 , 1.f/255);
@@ -253,6 +327,44 @@ extern "C" {
         }
 
         rotateMat(frame, rotation);
+        cvtColor(frame, frame, COLOR_BGR2RGB);
+
+        frame.convertTo(frame, CV_32FC3 , 1.f/255);
+
+        transform(frame, frame, rgbToLMS());
+
+        if (strcmp(type, protanopia) == 0) {
+            transform(frame, frame, lmsProtanopiaSimulation(degree));
+        } else if (strcmp(type, deutranopia) == 0) {
+            transform(frame, frame, lmsDeutranopiaSimulation(degree));
+        } else if (strcmp(type, tritanopia) == 0) {
+            transform(frame, frame, lmsTritanopiaSimulation(degree));
+        }
+
+        transform(frame, frame, lmsToRGB());
+
+        frame.convertTo(frame, CV_8U, 255);
+
+        vector<uint8_t> jpegData;
+
+        vector<int> params;
+        params.push_back(IMWRITE_JPEG_QUALITY);
+        params.push_back(90);
+
+        imencode(".jpg", frame, jpegData, params);
+
+        memcpy(encodedBytes, jpegData.data(), jpegData.size());
+
+        *outCount = jpegData.size();
+    }
+
+    __attribute__((visibility("default"))) __attribute__((used))
+    const void simulateImage(const char* path, const char* type, float degree, uint8_t* encodedBytes, int32_t* outCount) {
+        const char* protanopia  = "protanopia";
+        const char* deutranopia = "deutranopia";
+        const char* tritanopia  = "tritanopia";
+
+        Mat frame = imread(path);
         cvtColor(frame, frame, COLOR_BGR2RGB);
 
         frame.convertTo(frame, CV_32FC3 , 1.f/255);
