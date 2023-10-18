@@ -105,7 +105,7 @@ abstract class _IshiharaStore with Store {
       return false;
     }
 
-    String result = ColorblindTypes.normal;
+    String result = ColorblindTypes.undefined;
     double percentage = 0;
 
     // Sort the answers
@@ -146,13 +146,51 @@ abstract class _IshiharaStore with Store {
         }
        });
 
-       percentage = (totalNormalAnswers / this.answers.length) * 100;
+      result = ColorblindTypes.normal;
+      percentage = (totalNormalAnswers / this.answers.length) * 100;
 
     } else if(normalCount <= 13) {
-      // Red green deficiency
+      double protanCount = 0;
+      double deutanCount = 0;
 
-    } else {
-      // Inconclusive for red green deficiency
+      List<Answer> classificationAnswers = this.answers.where((answer) => answer.plate.order >= 22).toList();
+
+      for (var i = 0; i < classificationAnswers.length; i++) {
+        Answer answer = classificationAnswers[i];
+
+        if(answer.answer == answer.plate.normal) {
+          continue;
+        }
+
+        if(answer.answer == answer.plate.protanopia) {
+          protanCount++;
+        } else if (answer.answer == answer.plate.deuteranopia) {
+          deutanCount++;
+        } else if(answer.answer! >= 10) {
+          String answerAsString = answer.answer.toString();
+
+          if(answerAsString[0] == answer.plate.deuteranopia) {
+            deutanCount = deutanCount + 0.5;
+          } else if (answerAsString[1] == answer.plate.protanopia) {
+            protanCount = protanCount + 0.5;
+          }
+        }
+      }
+
+      if(protanCount > deutanCount) {
+        result = ColorblindTypes.protan;
+        percentage = ((redGreenDeficiencyCount + protanCount) / this.answers.length) * 100;
+      } else if (deutanCount > protanCount) {
+        result = ColorblindTypes.deutan;
+        percentage = ((redGreenDeficiencyCount + deutanCount) / this.answers.length) * 100;
+      } else {
+        result = ColorblindTypes.redGreen;
+        percentage = ((redGreenDeficiencyCount + protanCount + deutanCount) / this.answers.length) * 100;
+      }
+
+    } else if(monocromaticCount >= 17) {
+      result = ColorblindTypes.monocromatic;
+      percentage = (this.answers.where((a) => a.cantSee == true).length / this.answers.length) * 100;
     }
 
     this.userStore.changeAnswers(this.answers);

@@ -29,6 +29,12 @@ abstract class _UserStore with Store {
   @computed
   String get result => _result ?? ColorblindTypes.normal;
 
+  @computed
+  bool get hasResult => _result != null;
+
+  @computed
+  bool get hasColorblind => result != ColorblindTypes.normal;
+
   @observable
   double? _percentage;
 

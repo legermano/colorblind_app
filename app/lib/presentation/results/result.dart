@@ -48,7 +48,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _buildBody(BuildContext context) {
-    final bool hasColorblind = _userStore.result != ColorblindTypes.normal;
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -57,14 +56,16 @@ class _ResultsScreenState extends State<ResultsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            hasColorblind ? "Daltonismo tipo" : "Você não possui daltonismo",
+            _userStore.hasColorblind
+                ? "Daltonismo tipo"
+                : "Você não possui daltonismo",
             style: TextStyle(
               color: AppColors.black.withOpacity(0.8),
               fontWeight: FontWeight.w500,
               fontSize: 16,
             ),
           ),
-          if (hasColorblind)
+          if (_userStore.hasColorblind)
             Text(
               _userStore.result.toUpperCase(),
               style: TextStyle(
@@ -72,6 +73,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 fontWeight: FontWeight.bold,
                 fontSize: 40,
               ),
+              textAlign: TextAlign.center,
             ),
           _buildArcPercentageIndicator(),
           Padding(
@@ -81,16 +83,16 @@ class _ResultsScreenState extends State<ResultsScreen> {
               bottom: 50,
             ),
             child: Text(
-              hasColorblind
-                  ? "das suas respostas se encaixam em um quadro de visão normal"
-                  : "das suas respostas se encaixam em um quadro de daltonismo do tipo ${_userStore.result}.",
+              _userStore.hasColorblind
+                  ? "das suas respostas se encaixam em um quadro de daltonismo do tipo ${_userStore.result}."
+                  : "das suas respostas se encaixam em um quadro de visão normal",
               style: TextStyle(
                 color: AppColors.black.withOpacity(0.8),
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          if (hasColorblind)
+          if ([ColorblindTypes.protan, ColorblindTypes.deutan].contains(_userStore.result))
             TextButton(
               child: Text(
                 "O que é ${_userStore.result}?",

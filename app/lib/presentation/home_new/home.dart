@@ -1,4 +1,6 @@
 import 'package:boilerplate/constants/colors.dart';
+import 'package:boilerplate/core/stores/user/user_store.dart';
+import 'package:boilerplate/di/service_locator.dart';
 import 'package:boilerplate/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,12 +13,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  //stores:---------------------------------------------------------------------
+  final UserStore _userStore = getIt<UserStore>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: _buildAppBar(),
-      body: _buildBody(),
+      body: _buildBody(context),
       bottomSheet: Container(
         color: AppColors.white,
         padding: EdgeInsets.only(bottom: 24),
@@ -55,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Olá, Laura',
+                    'Olá, Lucas',
                     style: TextStyle(
                       color: AppColors.white,
                       fontSize: 24,
@@ -63,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Text(
-                    'laurinha2009@gmail.com',
+                    'lucas@universo.univates.br',
                     style: TextStyle(
                       color: AppColors.white.withOpacity(0.8),
                       fontSize: 16,
@@ -85,30 +90,92 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBody() {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 80),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          children: [
-            _buildResultCard(),
-            Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed(Routes.ishihara),
-                    child: _buildIshiharaCard(),
+  Widget _buildBody(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            children: [
+              _userStore.hasResult
+                  ? _buildResultCard()
+                  : _buildMakeTestCard(context),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: GestureDetector(
+                      onTap: () =>
+                          Navigator.of(context).pushNamed(Routes.ishihara),
+                      child: _buildIshiharaCard(),
+                    ),
                   ),
+                  Expanded(
+                    flex: 1,
+                    child: GestureDetector(
+                      onTap: () =>
+                          Navigator.of(context).pushNamed(Routes.aboutProtan),
+                      child: _buildInformationsCard(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMakeTestCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      ),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Realize o teste de daltonismo",
+                style: TextStyle(
+                  color: AppColors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
                 ),
-                Expanded(
-                  flex: 1,
-                  child: _buildInformationsCard(),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Realize o teste de Ishihara para poder diagnosticar se possui ou não daltonismo. "
+                "O teste de Ishihara é um teste de cores para detectar e classificar o tipo de daltonismo que o paciente possui. "
+                "Ele consiste na exibição de uma série de cartões coloridos, cada um contendo vários círculos feitos de cores ligeiramente diferentes das cores daqueles situados nas proximidades.",
+                style: TextStyle(color: AppColors.black.withOpacity(0.8)),
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: OutlinedButton(
+                  child: const Text(
+                    'Realize o teste de Ishihara',
+                    style: TextStyle(color: AppColors.black),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                    side: BorderSide(color: AppColors.black, width: 2),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(Routes.ishihara);
+                  },
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -130,7 +197,9 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(color: AppColors.black.withOpacity(0.8)),
             ),
             Text(
-              'Daltonismo tipo X',
+              _userStore.hasColorblind
+                  ? "Daltonismo tipo ${_userStore.result}"
+                  : "Visão normal",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -139,7 +208,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+              "O daltonismo é uma deficiência visual que interfere na percepção das cores, a maior parte desse grupo tem dificuldade na distinção entre o vermelho e verde, com menos frequência o azul e o amarelo, e a menor frequência é das pessoas que só enxergam tons brancos, cinzas e pretos. "
+              "Estima-se que no Brasil cerca de 10% dos homens e 1% das mulheres possuam essa condição.",
               style: TextStyle(color: AppColors.black.withOpacity(0.8)),
             ),
             const SizedBox(height: 24),
@@ -160,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.of(context).pushNamed(Routes.results);
                 },
               ),
-            )
+            ),
           ],
         ),
       ),

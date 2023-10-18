@@ -88,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: () async {
                         await _onboardingStore.complete();
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                          Routes.login,
+                          Routes.home,
                           (Route<dynamic> route) => false,
                         );
                       },

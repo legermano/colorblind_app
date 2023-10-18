@@ -51,9 +51,10 @@ class MyApp extends StatelessWidget {
           ],
           home: _onboardingStore.showOnboarding
               ? OnboardingScreen()
-              : _loginStore.isLoggedIn
-                  ? HomeScreen()
-                  : LoginScreen(),
+              : HomeScreen(),
+              // : _loginStore.isLoggedIn
+              //     ? HomeScreen()
+              //     : LoginScreen(),
         );
       },
     );
