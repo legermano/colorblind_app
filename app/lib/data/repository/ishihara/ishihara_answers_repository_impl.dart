@@ -20,4 +20,19 @@ class IshiharaAnswersRepositoryImpl extends IshiharaAnswersRepository {
   Future<void> changeAnswers(AnswerList answers) =>
     _sharedPrefsHelper.changeIshiharaAnswers(answers.toJson());
 
+  // Result: -------------------------------------------------------------------
+  @override
+  String? get result => _sharedPrefsHelper.ishiharaResult;
+
+  @override
+  double? get percentage => _sharedPrefsHelper.ishiharaResultPercentage;
+
+  @override
+  Future<void> setResult(String result) =>
+    _sharedPrefsHelper.setIshiharaResult(result);
+
+  @override
+  Future<void> setResultPercentage(double percentage) =>
+    _sharedPrefsHelper.setIshiharaResultPercengate(percentage);
+
 }

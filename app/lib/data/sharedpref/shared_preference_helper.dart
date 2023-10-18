@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -68,5 +67,23 @@ class SharedPreferenceHelper {
 
   Future<void> changeIshiharaAnswers(String answers) {
     return _sharedPreference.setString(Preferences.ishihara_answer, answers);
+  }
+
+  // Ishihara result: ----------------------------------------------------------
+  String? get ishiharaResult {
+    return _sharedPreference.getString(Preferences.ishihara_result);
+  }
+
+  Future<void> setIshiharaResult(String result) {
+    return _sharedPreference.setString(Preferences.ishihara_result_percentage, result);
+  }
+
+  // Ishihara result percentage: -----------------------------------------------
+  double? get ishiharaResultPercentage {
+    return _sharedPreference.getDouble(Preferences.ishihara_result_percentage);
+  }
+
+  Future<void> setIshiharaResultPercengate(double percentage) {
+    return _sharedPreference.setDouble(Preferences.ishihara_result_percentage, percentage);
   }
 }

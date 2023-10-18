@@ -7,4 +7,9 @@ abstract class IshiharaAnswersRepository {
   AnswerList? get answers;
 
   // Result: -------------------------------------------------------------------
+  Future<void> setResult(String result);
+  Future<void> setResultPercentage(double result);
+
+  String? get result;
+  double? get percentage;
 }

@@ -1,3 +1,4 @@
+import 'package:boilerplate/constants/colorblind_type.dart';
 import 'package:boilerplate/domain/entity/ishihara/answer.dart';
 import 'package:boilerplate/domain/entity/ishihara/answer_list.dart';
 import 'package:boilerplate/domain/repository/ishihara/ishihara_answers_repository.dart';
@@ -22,6 +23,18 @@ abstract class _UserStore with Store {
   @computed
   List<Answer> get answers => _answers.answers ?? [];
 
+  @observable
+  String? _result;
+
+  @computed
+  String get result => _result ?? ColorblindTypes.normal;
+
+  @observable
+  double? _percentage;
+
+  @computed
+  double get percentage => _percentage ?? 0;
+
   // actions:-------------------------------------------------------------------
   @action
   void changeAnswers(List<Answer> answers) {
@@ -29,11 +42,22 @@ abstract class _UserStore with Store {
     _answersRepository.changeAnswers(_answers);
   }
 
+  @action
+  void setResult(String result, percentage) {
+    _result = result;
+    _percentage = percentage;
+
+    _answersRepository.setResult(result);
+    _answersRepository.setResultPercentage(percentage);
+  }
+
   // general:-------------------------------------------------------------------
   void init() async {
-    // getting current language from shared preference
     if (_answersRepository.answers != null) {
       _answers = _answersRepository.answers!;
     }
+
+    _result = _answersRepository.result;
+    _percentage = _answersRepository.percentage;
   }
 }

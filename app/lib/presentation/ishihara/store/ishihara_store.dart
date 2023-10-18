@@ -1,3 +1,4 @@
+import 'package:boilerplate/constants/colorblind_type.dart';
 import 'package:boilerplate/core/stores/error/error_store.dart';
 import 'package:boilerplate/core/stores/user/user_store.dart';
 import 'package:boilerplate/domain/entity/ishihara/answer.dart';
@@ -104,6 +105,9 @@ abstract class _IshiharaStore with Store {
       return false;
     }
 
+    String result = ColorblindTypes.normal;
+    double percentage = 0;
+
     // Sort the answers
     this.answers.sort((a,b) => a.plate.order.compareTo(b.plate.order));
 
@@ -142,6 +146,8 @@ abstract class _IshiharaStore with Store {
         }
        });
 
+       percentage = (totalNormalAnswers / this.answers.length) * 100;
+
     } else if(normalCount <= 13) {
       // Red green deficiency
 
@@ -150,6 +156,7 @@ abstract class _IshiharaStore with Store {
     }
 
     this.userStore.changeAnswers(this.answers);
+    this.userStore.setResult(result, percentage);
 
     return true;
   }

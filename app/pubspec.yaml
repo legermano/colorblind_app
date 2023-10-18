@@ -74,6 +74,7 @@ dependencies:
   # X
   xxtea: ^2.1.0
   lecle_flutter_absolute_path: ^0.0.2+1
+  dashed_circular_progress_bar: ^0.0.4
   # Y
   # Z
 
