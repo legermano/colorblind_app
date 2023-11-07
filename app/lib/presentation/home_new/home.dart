@@ -1,8 +1,11 @@
 import 'package:boilerplate/constants/colors.dart';
 import 'package:boilerplate/core/stores/user/user_store.dart';
 import 'package:boilerplate/di/service_locator.dart';
+import 'package:boilerplate/presentation/login/store/login_store.dart';
 import 'package:boilerplate/utils/routes/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   //stores:---------------------------------------------------------------------
   final UserStore _userStore = getIt<UserStore>();
+  final LoginStore _loginStore = getIt<LoginStore>();
 
   @override
   Widget build(BuildContext context) {
@@ -41,51 +45,69 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       toolbarHeight: 100,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 0,
-            child: CircleAvatar(
-              child: SvgPicture.asset('assets/svg/user.svg'),
-              radius: 32,
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Olá, Lucas',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'lucas@universo.univates.br',
-                    style: TextStyle(
-                      color: AppColors.white.withOpacity(0.8),
-                      fontSize: 16,
-                    ),
-                  )
-                ],
+      title: Observer(
+        builder: (context) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 0,
+                child: CircleAvatar(
+                  child: SvgPicture.asset('assets/svg/user.svg'),
+                  radius: 32,
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            flex: 0,
-            child: IconButton(
-              icon: SvgPicture.asset('assets/icons/edit.svg'),
-              onPressed: () {},
-            ),
-          )
-        ],
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Olá, ' +
+                            (_loginStore.isLoggedIn
+                                ? "${_loginStore.user?.displayName} ?? 'Usuário'"
+                                : 'Visitante'),
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _loginStore.isLoggedIn
+                            ? "${_loginStore.user?.email ?? ''}"
+                            : "Realize o login",
+                        style: TextStyle(
+                          color: AppColors.white.withOpacity(0.8),
+                          fontSize: 16,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 0,
+                child: IconButton(
+                  icon: Icon(
+                    _loginStore.isLoggedIn ? Icons.logout : Icons.login,
+                    color: AppColors.white,
+                  ),
+                  onPressed: () {
+                    if (_loginStore.isLoggedIn) {
+                      _loginStore.logout();
+                    } else {
+                      Navigator.of(context).pushReplacementNamed(Routes.login);
+                    }
+                  },
+                ),
+              )
+            ],
+          );
+        },
       ),
     );
   }
@@ -316,6 +338,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       onPressed: () => Navigator.of(context).pushNamed(Routes.camera),
+      // onPressed: () async {
+      //   FirebaseFirestore db = FirebaseFirestore.instance;
+
+      //   await db.collection("plates").get().then((event) {
+      //     for (var doc in event.docs) {
+      //       print("${doc.id} => ${doc.data()}");
+      //     }
+      //   });
+      // },
     );
   }
 }

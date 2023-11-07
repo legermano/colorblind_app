@@ -22,6 +22,7 @@ abstract class _FormStore with Store {
 
   void _setupValidations() {
     _disposers = [
+      reaction((_) => userName, validateUserName),
       reaction((_) => userEmail, validateUserEmail),
       reaction((_) => password, validatePassword),
       reaction((_) => confirmPassword, validateConfirmPassword)
@@ -29,6 +30,9 @@ abstract class _FormStore with Store {
   }
 
   // store variables:-----------------------------------------------------------
+  @observable
+  String userName = '';
+
   @observable
   String userEmail = '';
 
@@ -48,6 +52,7 @@ abstract class _FormStore with Store {
   @computed
   bool get canRegister =>
       !formErrorStore.hasErrorsInRegister &&
+      userName.isNotEmpty &&
       userEmail.isNotEmpty &&
       password.isNotEmpty &&
       confirmPassword.isNotEmpty;
@@ -58,7 +63,12 @@ abstract class _FormStore with Store {
 
   // actions:-------------------------------------------------------------------
   @action
-  void setUserId(String value) {
+  void setUserName(String value) {
+    userName = value;
+  }
+
+  @action
+  void setUserEmail(String value) {
     userEmail = value;
   }
 
@@ -73,11 +83,22 @@ abstract class _FormStore with Store {
   }
 
   @action
+  void validateUserName(String value) {
+    if (value.isEmpty) {
+      formErrorStore.userName = "Nome não pode ser vazio";
+    } else if (value.length < 3) {
+      formErrorStore.userName = 'Nome deve ter pelo menos 3 caractéres';
+    } else {
+      formErrorStore.userName = null;
+    }
+  }
+
+  @action
   void validateUserEmail(String value) {
     if (value.isEmpty) {
-      formErrorStore.userEmail = "Email can't be empty";
+      formErrorStore.userEmail = "E-mail não pode ser vazio";
     } else if (!isEmail(value)) {
-      formErrorStore.userEmail = 'Please enter a valid email address';
+      formErrorStore.userEmail = 'Por favor preencha um e-mail válido';
     } else {
       formErrorStore.userEmail = null;
     }
@@ -86,9 +107,9 @@ abstract class _FormStore with Store {
   @action
   void validatePassword(String value) {
     if (value.isEmpty) {
-      formErrorStore.password = "Password can't be empty";
+      formErrorStore.password = "Senha não pode ser vazia";
     } else if (value.length < 6) {
-      formErrorStore.password = "Password must be at-least 6 characters long";
+      formErrorStore.password = "Senha deve ter pelo menos 6 caractéres";
     } else {
       formErrorStore.password = null;
     }
@@ -97,9 +118,9 @@ abstract class _FormStore with Store {
   @action
   void validateConfirmPassword(String value) {
     if (value.isEmpty) {
-      formErrorStore.confirmPassword = "Confirm password can't be empty";
+      formErrorStore.confirmPassword = "Senha de confirmação não pode ser vazia";
     } else if (value != password) {
-      formErrorStore.confirmPassword = "Password doesn't match";
+      formErrorStore.confirmPassword = "Senhas não conferem";
     } else {
       formErrorStore.confirmPassword = null;
     }
@@ -122,6 +143,9 @@ class FormErrorStore = _FormErrorStore with _$FormErrorStore;
 
 abstract class _FormErrorStore with Store {
   @observable
+  String? userName;
+
+  @observable
   String? userEmail;
 
   @observable
@@ -135,7 +159,7 @@ abstract class _FormErrorStore with Store {
 
   @computed
   bool get hasErrorsInRegister =>
-      userEmail != null || password != null || confirmPassword != null;
+      userName != null || userEmail != null || password != null || confirmPassword != null;
 
   @computed
   bool get hasErrorInForgotPassword => userEmail != null;

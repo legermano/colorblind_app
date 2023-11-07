@@ -1,10 +1,9 @@
 import 'package:boilerplate/core/stores/error/error_store.dart';
 import 'package:boilerplate/core/stores/form/form_store.dart';
-import 'package:boilerplate/domain/usecase/user/is_logged_in_usecase.dart';
-import 'package:boilerplate/domain/usecase/user/save_login_in_status_usecase.dart';
+import 'package:boilerplate/domain/usecase/user/register_usecase.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobx/mobx.dart';
 
-import '../../../domain/entity/user/user.dart';
 import '../../../domain/usecase/user/login_usecase.dart';
 
 part 'login_store.g.dart';
@@ -14,9 +13,8 @@ class LoginStore = _LoginStore with _$LoginStore;
 abstract class _LoginStore with Store {
   // constructor:---------------------------------------------------------------
   _LoginStore(
-    this._isLoggedInUseCase,
-    this._saveLoginStatusUseCase,
     this._loginUseCase,
+    this._registerUseCase,
     this.formErrorStore,
     this.errorStore,
   ) {
@@ -24,15 +22,12 @@ abstract class _LoginStore with Store {
     _setupDisposers();
 
     // checking if user is logged in
-    _isLoggedInUseCase.call(params: null).then((value) async {
-      isLoggedIn = value;
-    });
+    this.user = FirebaseAuth.instance.currentUser;
   }
 
   // use cases:-----------------------------------------------------------------
-  final IsLoggedInUseCase _isLoggedInUseCase;
-  final SaveLoginStatusUseCase _saveLoginStatusUseCase;
   final LoginUseCase _loginUseCase;
+  final RegisterUseCase _registerUseCase;
 
   // stores:--------------------------------------------------------------------
   // for handling form errors
@@ -54,8 +49,12 @@ abstract class _LoginStore with Store {
   static ObservableFuture<User?> emptyLoginResponse =
       ObservableFuture.value(null);
 
+  static ObservableFuture<User?> emptyRegisterResponse =
+      ObservableFuture.value(null);
+
   // store variables:-----------------------------------------------------------
-  bool isLoggedIn = false;
+  @observable
+  User? user;
 
   @observable
   bool success = false;
@@ -63,34 +62,57 @@ abstract class _LoginStore with Store {
   @observable
   ObservableFuture<User?> loginFuture = emptyLoginResponse;
 
+  @observable
+  ObservableFuture<User?> registerFuture = emptyRegisterResponse;
+
   @computed
   bool get isLoading => loginFuture.status == FutureStatus.pending;
+
+  @computed
+  bool get isLoggedIn => this.user != null;
 
   // actions:-------------------------------------------------------------------
   @action
   Future login(String email, String password) async {
     final LoginParams loginParams =
-        LoginParams(username: email, password: password);
+        LoginParams(email: email, password: password);
     final future = _loginUseCase.call(params: loginParams);
     loginFuture = ObservableFuture(future);
 
     await future.then((value) async {
       if (value != null) {
-        await _saveLoginStatusUseCase.call(params: true);
-        this.isLoggedIn = true;
+        this.user = value;
         this.success = true;
       }
     }).catchError((e) {
       print(e);
-      this.isLoggedIn = false;
+      this.success = false;
+      throw e;
+    });
+  }
+
+  @action
+  Future register(String name, String email, String password) async {
+    final RegisterParams registerParams =
+        RegisterParams(name: name, email: email, password: password);
+    final future = _registerUseCase.call(params: registerParams);
+    registerFuture = ObservableFuture(future);
+
+    await future.then((value) async {
+      if (value != null) {
+        this.user = value;
+        this.success = true;
+      }
+    }).catchError((e) {
+      print(e);
       this.success = false;
       throw e;
     });
   }
 
   logout() async {
-    this.isLoggedIn = false;
-    await _saveLoginStatusUseCase.call(params: false);
+    await FirebaseAuth.instance.signOut();
+    this.user = null;
   }
 
   // general methods:-----------------------------------------------------------

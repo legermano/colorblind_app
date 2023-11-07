@@ -75,6 +75,9 @@ dependencies:
   xxtea: ^2.1.0
   lecle_flutter_absolute_path: ^0.0.2+1
   dashed_circular_progress_bar: ^0.0.4
+  firebase_auth: ^4.12.1
+  firebase_core: ^2.21.0
+  cloud_firestore: ^4.12.2
   # Y
   # Z
 

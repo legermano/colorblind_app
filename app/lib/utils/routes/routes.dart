@@ -4,6 +4,7 @@ import 'package:boilerplate/presentation/about/AboutTritan.dart';
 import 'package:boilerplate/presentation/camera/camera.dart';
 import 'package:boilerplate/presentation/home_new/home.dart';
 import 'package:boilerplate/presentation/ishihara/ishihara.dart';
+import 'package:boilerplate/presentation/login/create_account.dart';
 import 'package:boilerplate/presentation/login/login.dart';
 import 'package:boilerplate/presentation/onboarding/onboarding.dart';
 import 'package:boilerplate/presentation/results/detailed_result.dart';
@@ -16,6 +17,7 @@ class Routes {
   //static variables
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String createAccout = '/create-account';
   static const String home = '/post';
   static const String onboarding = '/onboarding';
   static const String ishihara = '/ishihara';
@@ -28,6 +30,7 @@ class Routes {
 
   static final routes = <String, WidgetBuilder>{
     login: (BuildContext context) => LoginScreen(),
+    createAccout: (BuildContext context) => CreateAccountScreen(),
     home: (BuildContext context) => HomeScreen(),
     onboarding: (BuildContext context) => OnboardingScreen(),
     ishihara: (BuildContext context) => IshiharaScreen(),

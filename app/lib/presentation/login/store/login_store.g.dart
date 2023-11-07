@@ -15,6 +15,28 @@ mixin _$LoginStore on _LoginStore, Store {
   bool get isLoading => (_$isLoadingComputed ??=
           Computed<bool>(() => super.isLoading, name: '_LoginStore.isLoading'))
       .value;
+  Computed<bool>? _$isLoggedInComputed;
+
+  @override
+  bool get isLoggedIn =>
+      (_$isLoggedInComputed ??= Computed<bool>(() => super.isLoggedIn,
+              name: '_LoginStore.isLoggedIn'))
+          .value;
+
+  late final _$userAtom = Atom(name: '_LoginStore.user', context: context);
+
+  @override
+  User? get user {
+    _$userAtom.reportRead();
+    return super.user;
+  }
+
+  @override
+  set user(User? value) {
+    _$userAtom.reportWrite(value, super.user, () {
+      super.user = value;
+    });
+  }
 
   late final _$successAtom =
       Atom(name: '_LoginStore.success', context: context);
@@ -48,6 +70,22 @@ mixin _$LoginStore on _LoginStore, Store {
     });
   }
 
+  late final _$registerFutureAtom =
+      Atom(name: '_LoginStore.registerFuture', context: context);
+
+  @override
+  ObservableFuture<User?> get registerFuture {
+    _$registerFutureAtom.reportRead();
+    return super.registerFuture;
+  }
+
+  @override
+  set registerFuture(ObservableFuture<User?> value) {
+    _$registerFutureAtom.reportWrite(value, super.registerFuture, () {
+      super.registerFuture = value;
+    });
+  }
+
   late final _$loginAsyncAction =
       AsyncAction('_LoginStore.login', context: context);
 
@@ -56,12 +94,24 @@ mixin _$LoginStore on _LoginStore, Store {
     return _$loginAsyncAction.run(() => super.login(email, password));
   }
 
+  late final _$registerAsyncAction =
+      AsyncAction('_LoginStore.register', context: context);
+
+  @override
+  Future<dynamic> register(String name, String email, String password) {
+    return _$registerAsyncAction
+        .run(() => super.register(name, email, password));
+  }
+
   @override
   String toString() {
     return '''
+user: ${user},
 success: ${success},
 loginFuture: ${loginFuture},
-isLoading: ${isLoading}
+registerFuture: ${registerFuture},
+isLoading: ${isLoading},
+isLoggedIn: ${isLoggedIn}
     ''';
   }
 }

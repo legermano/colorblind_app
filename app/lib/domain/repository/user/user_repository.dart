@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:boilerplate/domain/usecase/user/login_usecase.dart';
-
-import '../../entity/user/user.dart';
+import 'package:boilerplate/domain/usecase/user/register_usecase.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class UserRepository {
   Future<User?> login(LoginParams params);
+
+  Future<User?> register(RegisterParams params);
 
   Future<void> saveIsLoggedIn(bool value);
 
@@ -14,5 +16,5 @@ abstract class UserRepository {
   Future<bool> get isLoggedIn;
 
   Future<bool> get showOnboarding;
-  
+
 }

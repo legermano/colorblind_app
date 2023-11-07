@@ -21,7 +21,6 @@ class MyApp extends StatelessWidget {
   // with Hot Reload than creating it directly in the `build` function.
   final ThemeStore _themeStore = getIt<ThemeStore>();
   final LanguageStore _languageStore = getIt<LanguageStore>();
-  final LoginStore _loginStore = getIt<LoginStore>();
   final OnboardingStore _onboardingStore = getIt<OnboardingStore>();
 
   @override
@@ -51,10 +50,7 @@ class MyApp extends StatelessWidget {
           ],
           home: _onboardingStore.showOnboarding
               ? OnboardingScreen()
-              : HomeScreen(),
-              // : _loginStore.isLoggedIn
-              //     ? HomeScreen()
-              //     : LoginScreen(),
+              : HomeScreen()
         );
       },
     );

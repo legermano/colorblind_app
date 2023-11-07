@@ -75,7 +75,7 @@ class SharedPreferenceHelper {
   }
 
   Future<void> setIshiharaResult(String result) {
-    return _sharedPreference.setString(Preferences.ishihara_result_percentage, result);
+    return _sharedPreference.setString(Preferences.ishihara_result, result);
   }
 
   // Ishihara result percentage: -----------------------------------------------

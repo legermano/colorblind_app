@@ -27,6 +27,7 @@ class RoundedButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialButton(
+      elevation: 0,
       height: height,
       key: this.key,
       color: buttonColor,
@@ -40,7 +41,7 @@ class RoundedButtonWidget extends StatelessWidget {
           imagePath != null
               ? Image.asset(
                   imagePath!,
-                  height: 15.0,
+                  height: 20.0,
                 )
               : SizedBox.shrink(),
           SizedBox(width: 5.0),

@@ -1,16 +1,14 @@
+import 'package:boilerplate/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class TextFieldWidget extends StatelessWidget {
-  final IconData icon;
   final String? hint;
   final String? errorText;
   final bool isObscure;
-  final bool isIcon;
   final TextInputType? inputType;
   final TextEditingController textController;
   final EdgeInsets padding;
   final Color hintColor;
-  final Color iconColor;
   final FocusNode? focusNode;
   final ValueChanged? onFieldSubmitted;
   final ValueChanged? onChanged;
@@ -29,37 +27,35 @@ class TextFieldWidget extends StatelessWidget {
         autofocus: autoFocus,
         textInputAction: inputAction,
         obscureText: this.isObscure,
-        maxLength: 25,
         keyboardType: this.inputType,
-        style: Theme.of(context).textTheme.bodyText1,
+        style: Theme.of(context).textTheme.bodyLarge,
         decoration: InputDecoration(
-            hintText: this.hint,
-            hintStyle:
-                Theme.of(context).textTheme.bodyText1!.copyWith(color: hintColor),
-            errorText: errorText,
-            counterText: '',
-            icon: this.isIcon ? Icon(this.icon, color: iconColor) : null),
+          hintText: this.hint,
+          hintStyle:
+              Theme.of(context).textTheme.bodyLarge!.copyWith(color: hintColor),
+          errorText: errorText,
+          counterText: '',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          )
+        ),
       ),
     );
   }
 
   const TextFieldWidget({
     Key? key,
-    required this.icon,
     required this.errorText,
     required this.textController,
     this.inputType,
     this.hint,
     this.isObscure = false,
-    this.isIcon = true,
     this.padding = const EdgeInsets.all(0),
     this.hintColor = Colors.grey,
-    this.iconColor = Colors.grey,
     this.focusNode,
     this.onFieldSubmitted,
     this.onChanged,
     this.autoFocus = false,
     this.inputAction,
   }) : super(key: key);
-
 }
