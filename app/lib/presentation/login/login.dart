@@ -41,13 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       primary: true,
       appBar: EmptyAppBar(),
-      backgroundColor: AppColors.blue,
-      bottomNavigationBar: _buildBody(),
+      body: _buildBottom(),
     );
   }
 
   // body methods:--------------------------------------------------------------
-  Widget _buildBody() {
+  Widget _buildBottom() {
     return Material(
       child: Stack(
         children: <Widget>[
@@ -73,42 +72,37 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildForm() {
-    return Container(
-      color: AppColors.blue,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: AppColors.white,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Login",
-                style: TextStyle(
-                  color: AppColors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 26,
+    return SingleChildScrollView(
+      child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Login",
+                  style: TextStyle(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                  ),
                 ),
-              ),
-              SizedBox(height: 24.0),
-              _buildUserEmailLabel(),
-              _buildUserEmailField(),
-              _buildPasswordLabel(),
-              _buildPasswordField(),
-              _buildForgotPasswordButton(),
-              _buildSignInButton(),
-              _buildOrDivider(),
-              _buildGoogleSignInButton(),
-              _buildDontHaveAccount(),
-            ],
+                SizedBox(height: 24.0),
+                _buildUserEmailLabel(),
+                _buildUserEmailField(),
+                _buildPasswordLabel(),
+                _buildPasswordField(),
+                _buildForgotPasswordButton(),
+                _buildSignInButton(),
+                _buildOrDivider(),
+                _buildGoogleSignInButton(),
+                _buildOrDivider(),
+                _buildAnonymouslySignInButton(),
+                _buildDontHaveAccount(),
+              ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -239,13 +233,23 @@ class _LoginScreenState extends State<LoginScreen> {
       borderColor: AppColors.black,
       imagePath: 'assets/icons/ic_google.png',
       onPressed: () async {
-        if (_formStore.canLogin) {
-          DeviceUtils.hideKeyboard(context);
-          _loginStore.login(
-              _userEmailController.text, _passwordController.text);
-        } else {
-          _showErrorMessage('Please fill in all fields');
-        }
+        DeviceUtils.hideKeyboard(context);
+        _loginStore.loginGoogle();
+      },
+    );
+  }
+
+  Widget _buildAnonymouslySignInButton() {
+    return RoundedButtonWidget(
+      buttonText: 'Continuar de forma anônima',
+      buttonColor: AppColors.white,
+      textColor: AppColors.black.withOpacity(0.8),
+      buttonTextSize: 16,
+      height: 56,
+      borderColor: AppColors.black,
+      onPressed: () async {
+        DeviceUtils.hideKeyboard(context);
+        _loginStore.loginAnonymously();
       },
     );
   }

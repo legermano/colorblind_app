@@ -1,38 +1,94 @@
 import 'dart:convert';
 
-import 'package:boilerplate/data/sharedpref/shared_preference_helper.dart';
 import 'package:boilerplate/domain/entity/ishihara/answer_list.dart';
 import 'package:boilerplate/domain/repository/ishihara/ishihara_answers_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class IshiharaAnswersRepositoryImpl extends IshiharaAnswersRepository {
-  final SharedPreferenceHelper _sharedPrefsHelper;
+  final FirebaseFirestore db = FirebaseFirestore.instance;
 
   // constructor
-  IshiharaAnswersRepositoryImpl(this._sharedPrefsHelper);
+  IshiharaAnswersRepositoryImpl();
 
   // Answers: ------------------------------------------------------------------
   @override
-  AnswerList? get answers => _sharedPrefsHelper.ishiharaAnswers != null
-    ? AnswerList.fromJson(json.decode(_sharedPrefsHelper.ishiharaAnswers!))
-    : null ;
+  Future<AnswerList?> getAnswers(String uid) async {
+    AnswerList? answerList;
+
+    await db.collection("user")
+      .doc(uid)
+      .get()
+      .then((value) {
+        if(value.data() != null) {
+          final data = value.data() as Map<String, dynamic>;
+
+          if(data['answers'] != null) {
+            answerList = AnswerList.fromJson(json.decode(data['answers']));
+          }
+        }
+      });
+
+    return answerList;
+  }
 
   @override
-  Future<void> changeAnswers(AnswerList answers) =>
-    _sharedPrefsHelper.changeIshiharaAnswers(answers.toJson());
+  Future<void> setAnswers(String uid, AnswerList answers) {
+    db.collection("statistics")
+      .doc("answers")
+      .update({"quantity": FieldValue.increment(1)});
+
+    return db.collection("user")
+      .doc(uid)
+      .set({"answers": answers.toJson()}, SetOptions(merge: true));
+  }
 
   // Result: -------------------------------------------------------------------
   @override
-  String? get result => _sharedPrefsHelper.ishiharaResult;
+  Future<String?> getResult(String uid) async {
+    String? result;
+
+    await db.collection("user")
+      .doc(uid)
+      .get()
+      .then((value) {
+        if(value.data() != null) {
+          final data = value.data() as Map<String, dynamic>;
+
+          result = data['result'];
+        }
+      });
+
+    return result;
+  }
 
   @override
-  double? get percentage => _sharedPrefsHelper.ishiharaResultPercentage;
+  Future<double?> getPercentage(String uid) async {
+    double? percentage;
+
+    await db.collection("user")
+      .doc(uid)
+      .get()
+      .then((value) {
+        if(value.data() != null) {
+          final data = value.data() as Map<String, dynamic>;
+
+          percentage = data['percentage'];
+        }
+      });
+
+    return percentage;
+  }
 
   @override
-  Future<void> setResult(String result) =>
-    _sharedPrefsHelper.setIshiharaResult(result);
+  Future<void> setResult(String uid, String result) =>
+    db.collection("user")
+      .doc(uid)
+      .set({"result": result}, SetOptions(merge: true));
 
   @override
-  Future<void> setResultPercentage(double percentage) =>
-    _sharedPrefsHelper.setIshiharaResultPercengate(percentage);
+  Future<void> setResultPercentage(String uid, double percentage) =>
+    db.collection("user")
+      .doc(uid)
+      .set({"percentage": percentage}, SetOptions(merge: true));
 
 }

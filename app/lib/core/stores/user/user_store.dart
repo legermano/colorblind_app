@@ -2,6 +2,7 @@ import 'package:boilerplate/constants/colorblind_type.dart';
 import 'package:boilerplate/domain/entity/ishihara/answer.dart';
 import 'package:boilerplate/domain/entity/ishihara/answer_list.dart';
 import 'package:boilerplate/domain/repository/ishihara/ishihara_answers_repository.dart';
+import 'package:boilerplate/presentation/login/store/login_store.dart';
 import 'package:mobx/mobx.dart';
 
 part 'user_store.g.dart';
@@ -10,9 +11,10 @@ class UserStore = _UserStore with _$UserStore;
 
 abstract class _UserStore with Store {
   final IshiharaAnswersRepository _answersRepository;
+  final LoginStore _loginStore;
 
   // constructor:---------------------------------------------------------------
-  _UserStore(this._answersRepository) {
+  _UserStore(this._answersRepository, this._loginStore) {
     init();
   }
 
@@ -45,7 +47,7 @@ abstract class _UserStore with Store {
   @action
   void changeAnswers(List<Answer> answers) {
     _answers.answers = answers;
-    _answersRepository.changeAnswers(_answers);
+    _answersRepository.setAnswers(_loginStore.user!.uid, _answers);
   }
 
   @action
@@ -53,17 +55,29 @@ abstract class _UserStore with Store {
     _result = result;
     _percentage = percentage;
 
-    _answersRepository.setResult(result);
-    _answersRepository.setResultPercentage(percentage);
+    _answersRepository.setResult(_loginStore.user!.uid, result);
+    _answersRepository.setResultPercentage(_loginStore.user!.uid, percentage);
   }
 
   // general:-------------------------------------------------------------------
   void init() async {
-    if (_answersRepository.answers != null) {
-      _answers = _answersRepository.answers!;
+    if(_loginStore.user == null) {
+      return;
     }
 
-    _result = _answersRepository.result;
-    _percentage = _answersRepository.percentage;
+    final answers = await _answersRepository.getAnswers(_loginStore.user!.uid);
+
+    if (answers != null) {
+      _answers = answers;
+    }
+
+    _result = await _answersRepository.getResult(_loginStore.user!.uid);
+    _percentage = await _answersRepository.getPercentage(_loginStore.user!.uid);
+  }
+
+  void clear() {
+    _answers = AnswerList();
+    _result = null;
+    _percentage = null;
   }
 }

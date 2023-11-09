@@ -10,6 +10,8 @@ import 'package:boilerplate/domain/usecase/post/get_post_usecase.dart';
 import 'package:boilerplate/domain/usecase/post/insert_post_usecase.dart';
 import 'package:boilerplate/domain/usecase/post/udpate_post_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/is_logged_in_usecase.dart';
+import 'package:boilerplate/domain/usecase/user/login_anonymously_usecase.dart';
+import 'package:boilerplate/domain/usecase/user/login_google_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/login_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/register_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/save_login_in_status_usecase.dart';
@@ -29,6 +31,12 @@ mixin UseCaseModule {
     );
     getIt.registerSingleton<LoginUseCase>(
       LoginUseCase(getIt<UserRepository>()),
+    );
+    getIt.registerSingleton<LoginGoogleUseCase>(
+      LoginGoogleUseCase(getIt<UserRepository>()),
+    );
+    getIt.registerSingleton<LoginAnonymouslyUseCase>(
+      LoginAnonymouslyUseCase(getIt<UserRepository>()),
     );
     getIt.registerSingleton<RegisterUseCase>(
       RegisterUseCase(getIt<UserRepository>()),

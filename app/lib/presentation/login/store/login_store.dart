@@ -1,5 +1,9 @@
 import 'package:boilerplate/core/stores/error/error_store.dart';
 import 'package:boilerplate/core/stores/form/form_store.dart';
+import 'package:boilerplate/core/stores/user/user_store.dart';
+import 'package:boilerplate/di/service_locator.dart';
+import 'package:boilerplate/domain/usecase/user/login_anonymously_usecase.dart';
+import 'package:boilerplate/domain/usecase/user/login_google_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/register_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobx/mobx.dart';
@@ -14,6 +18,8 @@ abstract class _LoginStore with Store {
   // constructor:---------------------------------------------------------------
   _LoginStore(
     this._loginUseCase,
+    this._loginGoogleUseCase,
+    this._loginAnonymouslyUseCase,
     this._registerUseCase,
     this.formErrorStore,
     this.errorStore,
@@ -23,10 +29,13 @@ abstract class _LoginStore with Store {
 
     // checking if user is logged in
     this.user = FirebaseAuth.instance.currentUser;
+    this.isLoggedIn = this.user != null;
   }
 
   // use cases:-----------------------------------------------------------------
   final LoginUseCase _loginUseCase;
+  final LoginGoogleUseCase _loginGoogleUseCase;
+  final LoginAnonymouslyUseCase _loginAnonymouslyUseCase;
   final RegisterUseCase _registerUseCase;
 
   // stores:--------------------------------------------------------------------
@@ -57,6 +66,9 @@ abstract class _LoginStore with Store {
   User? user;
 
   @observable
+  bool isLoggedIn = false;
+
+  @observable
   bool success = false;
 
   @observable
@@ -68,9 +80,6 @@ abstract class _LoginStore with Store {
   @computed
   bool get isLoading => loginFuture.status == FutureStatus.pending;
 
-  @computed
-  bool get isLoggedIn => this.user != null;
-
   // actions:-------------------------------------------------------------------
   @action
   Future login(String email, String password) async {
@@ -81,8 +90,39 @@ abstract class _LoginStore with Store {
 
     await future.then((value) async {
       if (value != null) {
-        this.user = value;
-        this.success = true;
+        _login(value);
+      }
+    }).catchError((e) {
+      print(e);
+      this.success = false;
+      throw e;
+    });
+  }
+
+  @action
+  Future loginGoogle() async {
+    final future = _loginGoogleUseCase.call(params: null);
+    loginFuture = ObservableFuture(future);
+
+    await future.then((value) async {
+      if (value != null) {
+        _login(value);
+      }
+    }).catchError((e) {
+      print(e);
+      this.success = false;
+      throw e;
+    });
+  }
+
+  @action
+  Future loginAnonymously() async {
+    final future = _loginAnonymouslyUseCase.call(params: null);
+    loginFuture = ObservableFuture(future);
+
+    await future.then((value) async {
+      if (value != null) {
+        _login(value);
       }
     }).catchError((e) {
       print(e);
@@ -100,8 +140,7 @@ abstract class _LoginStore with Store {
 
     await future.then((value) async {
       if (value != null) {
-        this.user = value;
-        this.success = true;
+        _login(value);
       }
     }).catchError((e) {
       print(e);
@@ -110,9 +149,22 @@ abstract class _LoginStore with Store {
     });
   }
 
+  _login(User user) {
+    this.user = user;
+    this.isLoggedIn = true;
+    this.success = true;
+
+    final UserStore _userStore = getIt<UserStore>();
+    _userStore.init();
+  }
+
   logout() async {
-    await FirebaseAuth.instance.signOut();
     this.user = null;
+    this.isLoggedIn = false;
+    FirebaseAuth.instance.signOut();
+
+    final UserStore _userStore = getIt<UserStore>();
+    _userStore.clear();
   }
 
   // general methods:-----------------------------------------------------------

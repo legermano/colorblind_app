@@ -5,6 +5,8 @@ import 'package:boilerplate/core/stores/form/form_store.dart';
 import 'package:boilerplate/core/stores/user/user_store.dart';
 import 'package:boilerplate/domain/repository/ishihara/ishihara_answers_repository.dart';
 import 'package:boilerplate/domain/usecase/ishihara/get_plates_usercase.dart';
+import 'package:boilerplate/domain/usecase/user/login_anonymously_usecase.dart';
+import 'package:boilerplate/domain/usecase/user/login_google_usecase.dart';
 import 'package:boilerplate/domain/usecase/user/register_usecase.dart';
 import 'package:boilerplate/presentation/ishihara/store/ishihara_store.dart';
 import 'package:boilerplate/domain/repository/setting/setting_repository.dart';
@@ -33,6 +35,8 @@ mixin StoreModule {
     getIt.registerSingleton<LoginStore>(
       LoginStore(
         getIt<LoginUseCase>(),
+        getIt<LoginGoogleUseCase>(),
+        getIt<LoginAnonymouslyUseCase>(),
         getIt<RegisterUseCase>(),
         getIt<FormErrorStore>(),
         getIt<ErrorStore>(),
@@ -63,6 +67,7 @@ mixin StoreModule {
     getIt.registerSingleton<UserStore>(
       UserStore(
         getIt<IshiharaAnswersRepository>(),
+        getIt<LoginStore>(),
       )
     );
 

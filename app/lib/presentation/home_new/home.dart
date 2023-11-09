@@ -3,7 +3,6 @@ import 'package:boilerplate/core/stores/user/user_store.dart';
 import 'package:boilerplate/di/service_locator.dart';
 import 'package:boilerplate/presentation/login/store/login_store.dart';
 import 'package:boilerplate/utils/routes/routes.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -68,7 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Olá, ' +
                             (_loginStore.isLoggedIn
-                                ? "${_loginStore.user?.displayName} ?? 'Usuário'"
+                                ? _loginStore.user!.isAnonymous
+                                    ? "Anônimo"
+                                    : _loginStore.user!.displayName ?? 'Usuário'
                                 : 'Visitante'),
                         style: TextStyle(
                           color: AppColors.white,
@@ -118,32 +119,36 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.only(bottom: 80),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Column(
-            children: [
-              _userStore.hasResult
-                  ? _buildResultCard()
-                  : _buildMakeTestCard(context),
-              Row(
+          child: Observer(
+            builder: (context) {
+              return Column(
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: GestureDetector(
-                      onTap: () =>
-                          Navigator.of(context).pushNamed(Routes.ishihara),
-                      child: _buildIshiharaCard(),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: GestureDetector(
-                      onTap: () =>
-                          Navigator.of(context).pushNamed(Routes.aboutProtan),
-                      child: _buildInformationsCard(),
-                    ),
+                  _userStore.hasResult
+                      ? _buildResultCard()
+                      : _buildMakeTestCard(context),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: GestureDetector(
+                          onTap: () =>
+                              Navigator.of(context).pushNamed(Routes.ishihara),
+                          child: _buildIshiharaCard(),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: GestureDetector(
+                          onTap: () =>
+                              Navigator.of(context).pushNamed(Routes.aboutProtan),
+                          child: _buildInformationsCard(),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              );
+            }
           ),
         ),
       ),
@@ -338,15 +343,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       onPressed: () => Navigator.of(context).pushNamed(Routes.camera),
-      // onPressed: () async {
-      //   FirebaseFirestore db = FirebaseFirestore.instance;
-
-      //   await db.collection("plates").get().then((event) {
-      //     for (var doc in event.docs) {
-      //       print("${doc.id} => ${doc.data()}");
-      //     }
-      //   });
-      // },
     );
   }
 }

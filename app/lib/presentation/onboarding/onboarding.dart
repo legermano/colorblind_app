@@ -1,5 +1,6 @@
 import 'package:boilerplate/constants/colors.dart';
 import 'package:boilerplate/di/service_locator.dart';
+import 'package:boilerplate/presentation/login/store/login_store.dart';
 import 'package:boilerplate/presentation/onboarding/store/onboarding_store.dart';
 import 'package:boilerplate/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final OnboardingStore _onboardingStore = getIt<OnboardingStore>();
+  final LoginStore _loginStore = getIt<LoginStore>();
 
   PageController _pageController = PageController();
   bool _isLastPage = false;
@@ -88,7 +90,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: () async {
                         await _onboardingStore.complete();
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                          Routes.home,
+                          _loginStore.isLoggedIn ? Routes.home : Routes.login,
                           (Route<dynamic> route) => false,
                         );
                       },

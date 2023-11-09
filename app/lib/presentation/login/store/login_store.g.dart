@@ -15,13 +15,6 @@ mixin _$LoginStore on _LoginStore, Store {
   bool get isLoading => (_$isLoadingComputed ??=
           Computed<bool>(() => super.isLoading, name: '_LoginStore.isLoading'))
       .value;
-  Computed<bool>? _$isLoggedInComputed;
-
-  @override
-  bool get isLoggedIn =>
-      (_$isLoggedInComputed ??= Computed<bool>(() => super.isLoggedIn,
-              name: '_LoginStore.isLoggedIn'))
-          .value;
 
   late final _$userAtom = Atom(name: '_LoginStore.user', context: context);
 
@@ -35,6 +28,22 @@ mixin _$LoginStore on _LoginStore, Store {
   set user(User? value) {
     _$userAtom.reportWrite(value, super.user, () {
       super.user = value;
+    });
+  }
+
+  late final _$isLoggedInAtom =
+      Atom(name: '_LoginStore.isLoggedIn', context: context);
+
+  @override
+  bool get isLoggedIn {
+    _$isLoggedInAtom.reportRead();
+    return super.isLoggedIn;
+  }
+
+  @override
+  set isLoggedIn(bool value) {
+    _$isLoggedInAtom.reportWrite(value, super.isLoggedIn, () {
+      super.isLoggedIn = value;
     });
   }
 
@@ -94,6 +103,22 @@ mixin _$LoginStore on _LoginStore, Store {
     return _$loginAsyncAction.run(() => super.login(email, password));
   }
 
+  late final _$loginGoogleAsyncAction =
+      AsyncAction('_LoginStore.loginGoogle', context: context);
+
+  @override
+  Future<dynamic> loginGoogle() {
+    return _$loginGoogleAsyncAction.run(() => super.loginGoogle());
+  }
+
+  late final _$loginAnonymouslyAsyncAction =
+      AsyncAction('_LoginStore.loginAnonymously', context: context);
+
+  @override
+  Future<dynamic> loginAnonymously() {
+    return _$loginAnonymouslyAsyncAction.run(() => super.loginAnonymously());
+  }
+
   late final _$registerAsyncAction =
       AsyncAction('_LoginStore.register', context: context);
 
@@ -107,11 +132,11 @@ mixin _$LoginStore on _LoginStore, Store {
   String toString() {
     return '''
 user: ${user},
+isLoggedIn: ${isLoggedIn},
 success: ${success},
 loginFuture: ${loginFuture},
 registerFuture: ${registerFuture},
-isLoading: ${isLoading},
-isLoggedIn: ${isLoggedIn}
+isLoading: ${isLoading}
     ''';
   }
 }

@@ -2,14 +2,14 @@ import 'package:boilerplate/domain/entity/ishihara/answer_list.dart';
 
 abstract class IshiharaAnswersRepository {
   // Answers: ------------------------------------------------------------------
-  Future<void> changeAnswers(AnswerList anwsers);
+  Future<void> setAnswers(String uid, AnswerList anwsers);
 
-  AnswerList? get answers;
+  Future<AnswerList?> getAnswers(String uid);
 
   // Result: -------------------------------------------------------------------
-  Future<void> setResult(String result);
-  Future<void> setResultPercentage(double result);
+  Future<void> setResult(String uid, String result);
+  Future<void> setResultPercentage(String uid, double result);
 
-  String? get result;
-  double? get percentage;
+  Future<String?> getResult(String uid);
+  Future<double?> getPercentage(String uid);
 }

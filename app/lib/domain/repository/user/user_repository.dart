@@ -7,6 +7,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 abstract class UserRepository {
   Future<User?> login(LoginParams params);
 
+  Future<User?> loginGoogle();
+
+  Future<User?> loginAnonymously();
+
   Future<User?> register(RegisterParams params);
 
   Future<void> saveIsLoggedIn(bool value);

@@ -37,8 +37,6 @@ mixin RepositoryModule {
       getIt<IshiharaPlatesApi>(),
     ));
 
-    getIt.registerSingleton<IshiharaAnswersRepository>(IshiharaAnswersRepositoryImpl(
-      getIt<SharedPreferenceHelper>()
-    ));
+    getIt.registerSingleton<IshiharaAnswersRepository>(IshiharaAnswersRepositoryImpl());
   }
 }
